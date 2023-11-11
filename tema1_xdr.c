@@ -6,13 +6,26 @@
 #include "tema1.h"
 
 bool_t
-xdr_approval (XDR *xdrs, approval *objp)
+xdr_file_permission (XDR *xdrs, file_permission *objp)
 {
 	register int32_t *buf;
 
 	 if (!xdr_string (xdrs, &objp->file, ~0))
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->permission, ~0))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_approval (XDR *xdrs, approval *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_array (xdrs, (char **)&objp->list_permissions.list_permissions_val, (u_int *) &objp->list_permissions.list_permissions_len, ~0,
+		sizeof (file_permission), (xdrproc_t) xdr_file_permission))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->no_permissions))
 		 return FALSE;
 	return TRUE;
 }

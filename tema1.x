@@ -1,6 +1,11 @@
-struct approval {
+struct file_permission {
 	string file<>;
 	string permission<>;
+};
+
+struct approval {
+	file_permission list_permissions<>;
+	int no_permissions;
 };
 
 struct request_authorization {

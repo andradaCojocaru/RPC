@@ -16,7 +16,7 @@
 #define SIG_PF void(*)(int)
 #endif
 
-approval **all_approvals;
+approval *all_approvals;
 char **users, **resources;
 int no_users, no_resources, token_valability, no_approvals;
 char buf[LINESIZE];
@@ -170,44 +170,62 @@ void read_resources(char *filename_resouces)
 	fclose(file_resources);
 }
 
-void read_approvals (char *filename_approvals)
-{
-	FILE *file_approvals = fopen(filename_approvals, "r");
+void read_approvals(char *filename_approvals) {
+    FILE *file_approvals = fopen(filename_approvals, "r");
 
-	if (file_approvals == NULL) {
-		printf("Cannot open %s\n", filename_approvals);
-		exit(1);
-	}
+    if (file_approvals == NULL) {
+        printf("Cannot open %s\n", filename_approvals);
+        exit(1);
+    }
 
-	approval app;
-	no_approvals = 0;
-	no_it = 0;
-	all_approvals = (approval **) calloc(1, sizeof(approval *));
-	while (fgets(buf, LINESIZE, file_approvals)) {
-		app.file = strtok(buf, ",");
-		app.permission = strtok(NULL, ",");
+    file_permission perm;
+    size_t no_it = 0;
 
-		all_approvals[no_approvals] = (approval *) calloc(1, sizeof(approval));
-		while(app.file != NULL) {
+    // Read each line
+    while (fgets(buf, LINESIZE, file_approvals)) {
+        // Resize the all_approvals array
+        all_approvals = (approval *)realloc(all_approvals, (no_approvals + 1) * sizeof(approval));
 
-			all_approvals[i] = (approval *) calloc(1, sizeof(approval));
-			all_approvals[i].file = (char *) calloc(SIZE_RESOURCE_NAME, sizeof(char));
-			all_approvals[i].permission = (char *) calloc(SIZE_PERMISSION, sizeof(char));
+        // Tokenize the line
+        perm.file = strtok(buf, ",");
+        perm.permission = strtok(NULL, ",");
 
-			memcpy(approval[i].file, app.file, SIZE_RESOURCE_NAME);
-			memcpy(approval[i].permission, app.permission, SIZE_PERMISSION);
+        no_it = 0;
 
-			printf("%s %s", );
+        // Allocate memory for list_permissions
+        all_approvals[no_approvals].list_permissions.list_permissions_val = (file_permission *)calloc((no_it + 1), sizeof(file_permission));
 
-			app.file = strtok(buf, ",");
-			app.permission = strtok(NULL, ",");
-		}
+        // Parse each file with permissions
+        while (perm.file != NULL) {
+            // Resize the list_permissions array
+            all_approvals[no_approvals].list_permissions.list_permissions_val = (file_permission *)realloc(all_approvals[no_approvals].list_permissions.list_permissions_val, (no_it + 1) * sizeof(file_permission));
 
-		
+            // Allocate memory for file and permission
+            all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].file = (char *)calloc(SIZE_RESOURCE_NAME, sizeof(char));
+            all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].permission = (char *)calloc(SIZE_PERMISSION, sizeof(char));
 
-		all_approvals = (approval *) realloc((no_approvals + 1), sizeof(approval));
-	}
-	fclose(file_approvals);
+            // Copy values
+            memcpy(all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].file, perm.file, SIZE_RESOURCE_NAME);
+            memcpy(all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].permission, perm.permission, SIZE_PERMISSION);
+
+            printf("%s %s\n", all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].file, all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].permission);
+
+            no_it++;
+
+            // Tokenize the next pair
+            perm.file = strtok(NULL, ",");
+            perm.permission = strtok(NULL, ",");
+        }
+
+        // Update the length of list_permissions
+        all_approvals[no_approvals].list_permissions.list_permissions_len = no_it;
+		printf("%d\n", all_approvals[no_approvals].list_permissions.list_permissions_len);
+
+        // Increment the number of approvals
+        no_approvals++;
+    }
+
+    fclose(file_approvals);
 }
 
 void read_token_valability (char *tokens_valability_file)

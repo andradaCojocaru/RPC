@@ -15,9 +15,6 @@ request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 	 * insert server code here
 	 */
 
-	result.status = 0;
-	result.request_token = " ";
-
 	return &result;
 }
 
@@ -29,8 +26,7 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
 	/*
 	 * insert server code here
 	 */
-	result.request_token = " ";
-	result.is_signed = 0;
+
 	return &result;
 }
 
@@ -42,11 +38,7 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 	/*
 	 * insert server code here
 	 */
-	result.access_token = " ";
-	result.refresh_token = " ";
-	result.request_token = " ";
-	result.status = 0;
-	result.ttl = 2;
+
 	return &result;
 }
 
@@ -58,6 +50,6 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 	/*
 	 * insert server code here
 	 */
-	result = 1;
+
 	return &result;
 }
