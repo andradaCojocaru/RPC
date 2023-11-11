@@ -44,6 +44,7 @@ tema1_prog_1(char *host, char *filename_operations)
 		if (strcmp(operation, "REQUEST") == 0) {
 			int automated_refresh = atoi(type);
 			printf("request %d\n", automated_refresh);
+			
 		} else {
 			
 		}

@@ -5,6 +5,11 @@
  */
 
 #include "tema1.h"
+#include "token.h"
+
+extern approval *all_approvals;
+extern char **users, **resources;
+extern int no_users, no_resources, token_valability, no_approvals;
 
 request_authorization *
 request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)

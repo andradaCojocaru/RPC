@@ -8,6 +8,12 @@ struct approval {
 	int no_permissions;
 };
 
+struct user_in_db {
+	string user_id<>;
+	string token<>;
+	int is_automatic_refreshed;
+};
+
 struct request_authorization {
     int status;
     string request_token<>;
