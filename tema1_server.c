@@ -8,14 +8,14 @@
 #include "token.h"
 
 extern approval *all_approvals;
-extern user_in_db db_users;
+extern user_in_db *db_users;
 extern char **users, **resources;
-extern int no_users, no_resources, token_valability, no_approvals;
+extern int no_users, no_resources, token_valability, no_approvals, crt_approval;
 
 request_authorization *
 request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 {
-	static request_authorization  result;
+	static request_authorization result;
 	result.status = 1;
 	result.request_token = " ";
 	for (int i = 0; i < no_users; i++) {
@@ -33,9 +33,14 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
 {
 	static approve_request_token  result;
 
-	/*
-	 * insert server code here
-	 */
+	memcpy(&result.request_token, argp, sizeof(char));
+	if(strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->file), "*" == 0) {
+		if(strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->permission), "-" == 0) {
+			result.is_signed = 0;
+		}
+	} else {
+		result.is_signed = 1;
+	}
 
 	return &result;
 }

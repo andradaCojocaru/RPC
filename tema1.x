@@ -1,3 +1,11 @@
+struct token {
+	string token_value<>;
+	int ttl;
+	int is_signed;
+	int crt_permissions;
+	int is_automatic_refreshed;
+};
+
 struct file_permission {
 	string file<>;
 	string permission<>;
@@ -10,13 +18,7 @@ struct approval {
 
 struct user_in_db {
 	string user_id<>;
-	string token<>;
-	int is_automatic_refreshed;
-};
-
-struct request_authorization {
-    int status;
-    string request_token<>;
+	token user_token;
 };
 
 struct approve_request_token {
@@ -49,7 +51,7 @@ struct validate_action_params {
 program TEMA1_PROG {
 	version TEMA1_VERS {
 		request_authorization REQUEST_AUTHORIZATION(string) = 1;
-        approve_request_token APPROVE_REQUEST_TOKEN(string) = 2;
+        token APPROVE_REQUEST_TOKEN(string) = 2;
 		request_access_token REQUEST_ACCESS_TOKEN(request_access_token_params) = 3;
 		int VALIDATE_DELEGATED_ACTION(validate_action_params) = 4;
 	} = 1;

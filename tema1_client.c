@@ -41,7 +41,7 @@ tema1_prog_1(char *host, char *filename_operations)
 			if (req_a->status == 1) {
 				printf("USER_NOT_FOUND\n");
 			} else {
-				printf("USER_FOUND");
+				
 			}
 			
 		} else {
