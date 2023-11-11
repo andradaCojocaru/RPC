@@ -12,14 +12,6 @@ void
 tema1_prog_1(char *host, char *filename_operations)
 {
 	CLIENT *clnt;
-	request_authorization  *result_1;
-	char *request_authorization_1_arg1;
-	approve_request_token  *result_2;
-	char *approve_request_token_1_arg1;
-	request_access_token  *result_3;
-	request_access_token_params request_access_token_1_arg1;
-	int  *result_4;
-	validate_action_params validate_delegated_action_1_arg1;
 
 #ifndef	DEBUG
 	clnt = clnt_create (host, TEMA1_PROG, TEMA1_VERS, "udp");
@@ -43,7 +35,14 @@ tema1_prog_1(char *host, char *filename_operations)
 
 		if (strcmp(operation, "REQUEST") == 0) {
 			int automated_refresh = atoi(type);
-			printf("request %d\n", automated_refresh);
+			printf("request %d; user %s\n", automated_refresh, user_id);
+			request_authorization *req_a =  request_authorization_1(user_id, clnt);
+
+			if (req_a->status == 1) {
+				printf("USER_NOT_FOUND\n");
+			} else {
+				printf("USER_FOUND");
+			}
 			
 		} else {
 			
@@ -51,22 +50,6 @@ tema1_prog_1(char *host, char *filename_operations)
 	}
 	fclose(file);
 
-	// result_1 = request_authorization_1(request_authorization_1_arg1, clnt);
-	// if (result_1 == (request_authorization *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_2 = approve_request_token_1(approve_request_token_1_arg1, clnt);
-	// if (result_2 == (approve_request_token *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_3 = request_access_token_1(request_access_token_1_arg1, clnt);
-	// if (result_3 == (request_access_token *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
-	// result_4 = validate_delegated_action_1(validate_delegated_action_1_arg1, clnt);
-	// if (result_4 == (int *) NULL) {
-	// 	clnt_perror (clnt, "call failed");
-	// }
 #ifndef	DEBUG
 	clnt_destroy (clnt);
 #endif	 /* DEBUG */

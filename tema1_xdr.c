@@ -31,6 +31,20 @@ xdr_approval (XDR *xdrs, approval *objp)
 }
 
 bool_t
+xdr_user_in_db (XDR *xdrs, user_in_db *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->user_id, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->token, ~0))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
 xdr_request_authorization (XDR *xdrs, request_authorization *objp)
 {
 	register int32_t *buf;

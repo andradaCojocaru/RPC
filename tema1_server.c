@@ -8,6 +8,7 @@
 #include "token.h"
 
 extern approval *all_approvals;
+extern user_in_db db_users;
 extern char **users, **resources;
 extern int no_users, no_resources, token_valability, no_approvals;
 
@@ -15,11 +16,15 @@ request_authorization *
 request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 {
 	static request_authorization  result;
-
-	/*
-	 * insert server code here
-	 */
-
+	result.status = 1;
+	result.request_token = " ";
+	for (int i = 0; i < no_users; i++) {
+		if (strncmp(users[i], arg1, strlen(arg1)) == 0) {
+			result.status = 0;
+			result.request_token = generate_access_token(arg1);
+			break;
+		}
+	}
 	return &result;
 }
 

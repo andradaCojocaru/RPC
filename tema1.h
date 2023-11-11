@@ -33,6 +33,13 @@ struct approval {
 };
 typedef struct approval approval;
 
+struct user_in_db {
+	char *user_id;
+	char *token;
+	int is_automatic_refreshed;
+};
+typedef struct user_in_db user_in_db;
+
 struct request_authorization {
 	int status;
 	char *request_token;
@@ -109,6 +116,7 @@ extern int tema1_prog_1_freeresult ();
 #if defined(__STDC__) || defined(__cplusplus)
 extern  bool_t xdr_file_permission (XDR *, file_permission*);
 extern  bool_t xdr_approval (XDR *, approval*);
+extern  bool_t xdr_user_in_db (XDR *, user_in_db*);
 extern  bool_t xdr_request_authorization (XDR *, request_authorization*);
 extern  bool_t xdr_approve_request_token (XDR *, approve_request_token*);
 extern  bool_t xdr_request_access_token_params (XDR *, request_access_token_params*);
@@ -118,6 +126,7 @@ extern  bool_t xdr_validate_action_params (XDR *, validate_action_params*);
 #else /* K&R C */
 extern bool_t xdr_file_permission ();
 extern bool_t xdr_approval ();
+extern bool_t xdr_user_in_db ();
 extern bool_t xdr_request_authorization ();
 extern bool_t xdr_approve_request_token ();
 extern bool_t xdr_request_access_token_params ();
