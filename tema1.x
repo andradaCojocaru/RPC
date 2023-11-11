@@ -21,9 +21,9 @@ struct user_in_db {
 	token user_token;
 };
 
-struct approve_request_token {
-	string request_token<>;
-	int is_signed;
+struct request_authorization {
+    int status;
+    string request_token<>;
 };
 
 struct request_access_token_params {

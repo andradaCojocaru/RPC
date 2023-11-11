@@ -41,7 +41,8 @@ tema1_prog_1(char *host, char *filename_operations)
 			if (req_a->status == 1) {
 				printf("USER_NOT_FOUND\n");
 			} else {
-				
+				token *new_token = approve_request_token_1(req_a->request_token, clnt);
+				printf("ajung aici\n");
 			}
 			
 		} else {

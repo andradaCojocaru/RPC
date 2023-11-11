@@ -25,24 +25,44 @@ request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 			break;
 		}
 	}
+	printf("ai iesi din autho\n");
 	return &result;
 }
 
-approve_request_token *
+token *
 approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
 {
-	static approve_request_token  result;
+    // for (int i = 0; i < no_approvals; i++) {
+    //     for (int j = 0; j < all_approvals[i].no_permissions; j++) {
+    //         printf("%s %s\n", all_approvals[i].list_permissions.list_permissions_val[j].file, all_approvals[i].list_permissions.list_permissions_val[j].permission);
+    //     }
+    // }
 
-	memcpy(&result.request_token, argp, sizeof(char));
-	if(strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->file), "*" == 0) {
-		if(strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->permission), "-" == 0) {
-			result.is_signed = 0;
-		}
-	} else {
-		result.is_signed = 1;
-	}
+    static token result;
+    result.crt_permissions = crt_approval;
+    result.is_automatic_refreshed = 0;
+    result.is_signed = 0;
+    result.ttl = 0;
+    
+    // Allocate memory for token_value
+    result.token_value = (char *)malloc((SIZE_USER_ID + 1) * sizeof(char));
 
-	return &result;
+    memcpy(result.token_value, arg1, SIZE_USER_ID);
+
+    printf("permisiuni date %d\n", all_approvals[1].no_permissions);
+
+    if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->file, "*") == 0) {
+        if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->permission, "-") == 0) {
+            result.is_signed = 0;
+        }
+    } else {
+        result.is_signed = 1;
+		crt_approval++;
+    }
+
+    printf("nr_crt_approval %d\n", crt_approval);
+
+    return &result;
 }
 
 request_access_token *

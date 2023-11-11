@@ -18,6 +18,15 @@ extern "C" {
 #define SIZE_RESOURCE_NAME 20
 #define SIZE_PERMISSION 10
 
+struct token {
+	char *token_value;
+	int ttl;
+	int is_signed;
+	int crt_permissions;
+	int is_automatic_refreshed;
+};
+typedef struct token token;
+
 struct file_permission {
 	char *file;
 	char *permission;
@@ -35,8 +44,7 @@ typedef struct approval approval;
 
 struct user_in_db {
 	char *user_id;
-	char *token;
-	int is_automatic_refreshed;
+	token user_token;
 };
 typedef struct user_in_db user_in_db;
 
@@ -45,12 +53,6 @@ struct request_authorization {
 	char *request_token;
 };
 typedef struct request_authorization request_authorization;
-
-struct approve_request_token {
-	char *request_token;
-	int is_signed;
-};
-typedef struct approve_request_token approve_request_token;
 
 struct request_access_token_params {
 	char *id;
@@ -85,8 +87,8 @@ typedef struct validate_action_params validate_action_params;
 extern  request_authorization * request_authorization_1(char *, CLIENT *);
 extern  request_authorization * request_authorization_1_svc(char *, struct svc_req *);
 #define APPROVE_REQUEST_TOKEN 2
-extern  approve_request_token * approve_request_token_1(char *, CLIENT *);
-extern  approve_request_token * approve_request_token_1_svc(char *, struct svc_req *);
+extern  token * approve_request_token_1(char *, CLIENT *);
+extern  token * approve_request_token_1_svc(char *, struct svc_req *);
 #define REQUEST_ACCESS_TOKEN 3
 extern  request_access_token * request_access_token_1(request_access_token_params , CLIENT *);
 extern  request_access_token * request_access_token_1_svc(request_access_token_params , struct svc_req *);
@@ -100,8 +102,8 @@ extern int tema1_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 extern  request_authorization * request_authorization_1();
 extern  request_authorization * request_authorization_1_svc();
 #define APPROVE_REQUEST_TOKEN 2
-extern  approve_request_token * approve_request_token_1();
-extern  approve_request_token * approve_request_token_1_svc();
+extern  token * approve_request_token_1();
+extern  token * approve_request_token_1_svc();
 #define REQUEST_ACCESS_TOKEN 3
 extern  request_access_token * request_access_token_1();
 extern  request_access_token * request_access_token_1_svc();
@@ -114,21 +116,21 @@ extern int tema1_prog_1_freeresult ();
 /* the xdr functions */
 
 #if defined(__STDC__) || defined(__cplusplus)
+extern  bool_t xdr_token (XDR *, token*);
 extern  bool_t xdr_file_permission (XDR *, file_permission*);
 extern  bool_t xdr_approval (XDR *, approval*);
 extern  bool_t xdr_user_in_db (XDR *, user_in_db*);
 extern  bool_t xdr_request_authorization (XDR *, request_authorization*);
-extern  bool_t xdr_approve_request_token (XDR *, approve_request_token*);
 extern  bool_t xdr_request_access_token_params (XDR *, request_access_token_params*);
 extern  bool_t xdr_request_access_token (XDR *, request_access_token*);
 extern  bool_t xdr_validate_action_params (XDR *, validate_action_params*);
 
 #else /* K&R C */
+extern bool_t xdr_token ();
 extern bool_t xdr_file_permission ();
 extern bool_t xdr_approval ();
 extern bool_t xdr_user_in_db ();
 extern bool_t xdr_request_authorization ();
-extern bool_t xdr_approve_request_token ();
 extern bool_t xdr_request_access_token_params ();
 extern bool_t xdr_request_access_token ();
 extern bool_t xdr_validate_action_params ();

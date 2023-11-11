@@ -6,6 +6,67 @@
 #include "tema1.h"
 
 bool_t
+xdr_token (XDR *xdrs, token *objp)
+{
+	register int32_t *buf;
+
+
+	if (xdrs->x_op == XDR_ENCODE) {
+		 if (!xdr_string (xdrs, &objp->token_value, ~0))
+			 return FALSE;
+		buf = XDR_INLINE (xdrs, 4 * BYTES_PER_XDR_UNIT);
+		if (buf == NULL) {
+			 if (!xdr_int (xdrs, &objp->ttl))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->is_signed))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->crt_permissions))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
+				 return FALSE;
+		} else {
+			IXDR_PUT_LONG(buf, objp->ttl);
+			IXDR_PUT_LONG(buf, objp->is_signed);
+			IXDR_PUT_LONG(buf, objp->crt_permissions);
+			IXDR_PUT_LONG(buf, objp->is_automatic_refreshed);
+		}
+		return TRUE;
+	} else if (xdrs->x_op == XDR_DECODE) {
+		 if (!xdr_string (xdrs, &objp->token_value, ~0))
+			 return FALSE;
+		buf = XDR_INLINE (xdrs, 4 * BYTES_PER_XDR_UNIT);
+		if (buf == NULL) {
+			 if (!xdr_int (xdrs, &objp->ttl))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->is_signed))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->crt_permissions))
+				 return FALSE;
+			 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
+				 return FALSE;
+		} else {
+			objp->ttl = IXDR_GET_LONG(buf);
+			objp->is_signed = IXDR_GET_LONG(buf);
+			objp->crt_permissions = IXDR_GET_LONG(buf);
+			objp->is_automatic_refreshed = IXDR_GET_LONG(buf);
+		}
+	 return TRUE;
+	}
+
+	 if (!xdr_string (xdrs, &objp->token_value, ~0))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->ttl))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->is_signed))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->crt_permissions))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
 xdr_file_permission (XDR *xdrs, file_permission *objp)
 {
 	register int32_t *buf;
@@ -37,9 +98,7 @@ xdr_user_in_db (XDR *xdrs, user_in_db *objp)
 
 	 if (!xdr_string (xdrs, &objp->user_id, ~0))
 		 return FALSE;
-	 if (!xdr_string (xdrs, &objp->token, ~0))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
+	 if (!xdr_token (xdrs, &objp->user_token))
 		 return FALSE;
 	return TRUE;
 }
@@ -52,18 +111,6 @@ xdr_request_authorization (XDR *xdrs, request_authorization *objp)
 	 if (!xdr_int (xdrs, &objp->status))
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->request_token, ~0))
-		 return FALSE;
-	return TRUE;
-}
-
-bool_t
-xdr_approve_request_token (XDR *xdrs, approve_request_token *objp)
-{
-	register int32_t *buf;
-
-	 if (!xdr_string (xdrs, &objp->request_token, ~0))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->is_signed))
 		 return FALSE;
 	return TRUE;
 }

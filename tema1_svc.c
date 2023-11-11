@@ -18,7 +18,7 @@
 
 approval *all_approvals;
 char **users, **resources;
-int no_users, no_resources, token_valability, no_approvals;
+int no_users, no_resources, token_valability, no_approvals, crt_approval;
 char buf[LINESIZE];
 
 static request_authorization *
@@ -27,7 +27,7 @@ _request_authorization_1 (char * *argp, struct svc_req *rqstp)
 	return (request_authorization_1_svc(*argp, rqstp));
 }
 
-static approve_request_token *
+static token *
 _approve_request_token_1 (char * *argp, struct svc_req *rqstp)
 {
 	return (approve_request_token_1_svc(*argp, rqstp));
@@ -71,7 +71,7 @@ tema1_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case APPROVE_REQUEST_TOKEN:
 		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_approve_request_token;
+		_xdr_result = (xdrproc_t) xdr_token;
 		local = (char *(*)(char *, struct svc_req *)) _approve_request_token_1;
 		break;
 
@@ -218,7 +218,7 @@ void read_approvals(char *filename_approvals) {
         }
 
         // Update the length of list_permissions
-        all_approvals[no_approvals].list_permissions.list_permissions_len = no_it;
+        all_approvals[no_approvals].no_permissions = no_it;
 		printf("%d\n", all_approvals[no_approvals].list_permissions.list_permissions_len);
 
         // Increment the number of approvals
