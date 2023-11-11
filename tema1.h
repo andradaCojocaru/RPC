@@ -16,6 +16,14 @@ extern "C" {
 #define LINESIZE 50
 #define SIZE_USER_ID 15
 #define SIZE_RESOURCE_NAME 20
+#define SIZE_PERMISSION 10
+
+
+struct approval {
+	char *file;
+	char *permission;
+};
+typedef struct approval approval;
 
 struct request_authorization {
 	int status;
@@ -91,6 +99,7 @@ extern int tema1_prog_1_freeresult ();
 /* the xdr functions */
 
 #if defined(__STDC__) || defined(__cplusplus)
+extern  bool_t xdr_approval (XDR *, approval*);
 extern  bool_t xdr_request_authorization (XDR *, request_authorization*);
 extern  bool_t xdr_approve_request_token (XDR *, approve_request_token*);
 extern  bool_t xdr_request_access_token_params (XDR *, request_access_token_params*);
@@ -98,6 +107,7 @@ extern  bool_t xdr_request_access_token (XDR *, request_access_token*);
 extern  bool_t xdr_validate_action_params (XDR *, validate_action_params*);
 
 #else /* K&R C */
+extern bool_t xdr_approval ();
 extern bool_t xdr_request_authorization ();
 extern bool_t xdr_approve_request_token ();
 extern bool_t xdr_request_access_token_params ();

@@ -1,3 +1,8 @@
+struct approval {
+	string file<>;
+	string permission<>;
+};
+
 struct request_authorization {
     int status;
     string request_token<>;

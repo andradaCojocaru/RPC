@@ -16,6 +16,7 @@
 #define SIG_PF void(*)(int)
 #endif
 
+approval **all_approvals;
 char **users, **resources;
 int no_users, no_resources, token_valability, no_approvals;
 char buf[LINESIZE];
@@ -178,6 +179,34 @@ void read_approvals (char *filename_approvals)
 		exit(1);
 	}
 
+	approval app;
+	no_approvals = 0;
+	no_it = 0;
+	all_approvals = (approval **) calloc(1, sizeof(approval *));
+	while (fgets(buf, LINESIZE, file_approvals)) {
+		app.file = strtok(buf, ",");
+		app.permission = strtok(NULL, ",");
+
+		all_approvals[no_approvals] = (approval *) calloc(1, sizeof(approval));
+		while(app.file != NULL) {
+
+			all_approvals[i] = (approval *) calloc(1, sizeof(approval));
+			all_approvals[i].file = (char *) calloc(SIZE_RESOURCE_NAME, sizeof(char));
+			all_approvals[i].permission = (char *) calloc(SIZE_PERMISSION, sizeof(char));
+
+			memcpy(approval[i].file, app.file, SIZE_RESOURCE_NAME);
+			memcpy(approval[i].permission, app.permission, SIZE_PERMISSION);
+
+			printf("%s %s", );
+
+			app.file = strtok(buf, ",");
+			app.permission = strtok(NULL, ",");
+		}
+
+		
+
+		all_approvals = (approval *) realloc((no_approvals + 1), sizeof(approval));
+	}
 	fclose(file_approvals);
 }
 
