@@ -42,7 +42,7 @@ struct validate_action_params {
     int ttl;
 	string operation<>;
 	string resource<>;
-	string access_token<>;
+	token user_token<>;
 };
 
 program TEMA1_PROG {
