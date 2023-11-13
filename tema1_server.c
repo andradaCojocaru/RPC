@@ -79,7 +79,6 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 	result.refresh_token = " ";
 	result.request_token = " ";
 	result.status = 0;
-	result.ttl = 0;
 	if (arg1.user_token.is_signed == 1) {
 		result.access_token = generate_access_token(arg1.user_token.token_value);
 		if (arg1.user_token.is_automatic_refreshed == 1) {
@@ -87,7 +86,6 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 		}
 		result.request_token = arg1.user_token.token_value;
 		result.status = 1;
-		result.ttl = token_valability;
 		for (int i = 0; i < no_users; i++) {
 			//if (strcmp(db_users[i].user_id, arg1.id) == 0 ) {
 				//db_users[i].user_token.crt_permissions = arg1.user_token.crt_permissions;

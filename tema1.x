@@ -35,7 +35,6 @@ struct request_access_token {
     string request_token<>;
     string access_token<>;
 	string refresh_token<>;
-    int ttl;
 	int status;
 };
 
