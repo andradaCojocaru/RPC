@@ -28,9 +28,7 @@ struct request_authorization {
 
 struct request_access_token_params {
 	string id<>;
-    int is_signed;
-	string request_token<>;
-	int is_automatic_refreshed;
+    token user_token;
 };
 
 struct request_access_token {

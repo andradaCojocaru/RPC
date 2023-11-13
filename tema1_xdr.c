@@ -122,11 +122,7 @@ xdr_request_access_token_params (XDR *xdrs, request_access_token_params *objp)
 
 	 if (!xdr_string (xdrs, &objp->id, ~0))
 		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->is_signed))
-		 return FALSE;
-	 if (!xdr_string (xdrs, &objp->request_token, ~0))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
+	 if (!xdr_token (xdrs, &objp->user_token))
 		 return FALSE;
 	return TRUE;
 }

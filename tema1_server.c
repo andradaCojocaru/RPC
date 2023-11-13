@@ -25,7 +25,7 @@ request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 			break;
 		}
 	}
-	printf("ai iesi din autho\n");
+	//printf("ai iesi din autho\n");
 	return &result;
 }
 
@@ -46,10 +46,14 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
     
     // Allocate memory for token_value
     result.token_value = (char *)malloc((SIZE_USER_ID + 1) * sizeof(char));
+	if (!result.token_value) {
+		printf("Allocation failed\n");
+		exit(1);
+	}
 
     memcpy(result.token_value, arg1, SIZE_USER_ID);
 
-    printf("permisiuni date %d\n", all_approvals[1].no_permissions);
+    printf("permisiuni date %d\n", all_approvals[crt_approval].no_permissions);
 
     if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->file, "*") == 0) {
         if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->permission, "-") == 0) {
@@ -57,10 +61,10 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
         }
     } else {
         result.is_signed = 1;
-		crt_approval++;
     }
+	crt_approval++;
 
-    printf("nr_crt_approval %d\n", crt_approval);
+    //printf("nr_crt_approval %d\n", crt_approval);
 
     return &result;
 }
@@ -69,10 +73,42 @@ request_access_token *
 request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rqstp)
 {
 	static request_access_token  result;
-
-	/*
-	 * insert server code here
-	 */
+	printf("%d\n", arg1.user_token.is_signed);
+	printf("aici acum\n");
+	result.access_token = " ";
+	result.refresh_token = " ";
+	result.request_token = " ";
+	result.status = 0;
+	result.ttl = 0;
+	if (arg1.user_token.is_signed == 1) {
+		result.access_token = generate_access_token(arg1.user_token.token_value);
+		if (arg1.user_token.is_automatic_refreshed == 1) {
+			result.refresh_token = generate_access_token(result.access_token);
+		}
+		result.request_token = arg1.user_token.token_value;
+		result.status = 1;
+		result.ttl = token_valability;
+		for (int i = 0; i < no_users; i++) {
+			//if (strcmp(db_users[i].user_id, arg1.id) == 0 ) {
+				//db_users[i].user_token.crt_permissions = arg1.user_token.crt_permissions;
+				//db_users[i].user_token.is_automatic_refreshed = arg1.user_token.is_automatic_refreshed;
+				//db_users[i].user_token.is_signed = arg1.user_token.is_signed;
+				//memcpy(db_users[i].user_token.token_value, arg1.user_token.token_value, SIZE_USER_ID);
+				//db_users[i].user_token.ttl = arg1.user_token.ttl;
+				//break;
+			//}
+		}
+		if (arg1.user_token.is_automatic_refreshed == 0) {
+			printf("BEGIN %s AUTHZ\n", arg1.id);
+			printf("  RequestToken = %s\n", result.request_token);
+			printf("  AccessToken = %s\n", result.access_token);
+		} else {
+			printf("BEGIN %s AUTHZ\n", arg1.id);
+			printf("  RequestToken = %s\n", result.request_token);
+			printf("  AccessToken = %s\n", result.access_token);
+			printf("  RefreshToken = %s\n", result.refresh_token);	
+		}
+	}
 
 	return &result;
 }

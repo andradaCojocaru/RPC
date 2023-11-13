@@ -56,9 +56,7 @@ typedef struct request_authorization request_authorization;
 
 struct request_access_token_params {
 	char *id;
-	int is_signed;
-	char *request_token;
-	int is_automatic_refreshed;
+	token user_token;
 };
 typedef struct request_access_token_params request_access_token_params;
 

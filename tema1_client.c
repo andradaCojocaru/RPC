@@ -35,16 +35,44 @@ tema1_prog_1(char *host, char *filename_operations)
 
 		if (strcmp(operation, "REQUEST") == 0) {
 			int automated_refresh = atoi(type);
-			printf("request %d; user %s\n", automated_refresh, user_id);
+			//printf("request %d; user %s\n", automated_refresh, user_id);
 			request_authorization *req_a =  request_authorization_1(user_id, clnt);
 
 			if (req_a->status == 1) {
 				printf("USER_NOT_FOUND\n");
 			} else {
 				token *new_token = approve_request_token_1(req_a->request_token, clnt);
-				printf("ajung aici\n");
+				request_access_token_params *acces_token_params = (request_access_token_params *) calloc (1, sizeof(request_access_token_params));
+				if (!acces_token_params) {
+					printf("Allocation failed\n");
+					exit(1);
+				}
+				acces_token_params->id = (char *) calloc (SIZE_USER_ID, sizeof(char));
+				if (!acces_token_params->id) {
+					printf("Allocation failed\n");
+					exit(1);
+				}
+				memcpy(acces_token_params->id, user_id, SIZE_USER_ID);
+				acces_token_params->user_token.crt_permissions = new_token->crt_permissions;
+				acces_token_params->user_token.is_automatic_refreshed = new_token->is_automatic_refreshed;
+				acces_token_params->user_token.is_signed = new_token->is_signed;
+				acces_token_params->user_token.token_value = (char *) calloc (SIZE_USER_ID, sizeof(char));
+				if (!acces_token_params->user_token.token_value) {
+					printf("Allocation failed\n");
+					exit(1);
+				}
+				memcpy(acces_token_params->user_token.token_value, new_token->token_value, SIZE_USER_ID);
+				acces_token_params->user_token.ttl = new_token->ttl;
+				request_access_token *acces_token = request_access_token_1(*acces_token_params, clnt);
+				//printf("%s\n", acces_token_params->id);
+				if (acces_token->status == 0) {
+					printf("REQUEST_DENIED\n");
+				} else if (!new_token->is_automatic_refreshed){
+					printf("%s -> %s\n", acces_token->request_token, acces_token->access_token);
+				} else {
+					printf("%s -> %s,%s\n", acces_token->request_token, acces_token->access_token, acces_token->refresh_token);
+				}
 			}
-			
 		} else {
 			
 		}
