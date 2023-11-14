@@ -118,7 +118,7 @@ void read_clients(char *filename_clients)
 	}
 
 	fscanf(file_clients, "%d", &no_users);
-	printf("no_users %d\n", no_users);
+	//printf("no_users %d\n", no_users);
 	users = (char **) calloc(no_users, sizeof(char *));
 	if (!users) {
 		printf("Allocation failed\n");

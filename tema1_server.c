@@ -16,6 +16,8 @@ request_authorization *
 request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 {
 	static request_authorization result;
+
+	printf("BEGIN %s AUTHZ\n", arg1);
 	result.status = 1;
 	result.request_token = " ";
 	for (int i = 0; i < no_users; i++) {
@@ -53,7 +55,7 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
 
     memcpy(result.token_value, arg1, SIZE_USER_ID);
 
-    printf("permisiuni date %d\n", all_approvals[crt_approval].no_permissions);
+    //printf("permisiuni date %d\n", all_approvals[crt_approval].no_permissions);
 
     if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->file, "*") == 0) {
         if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->permission, "-") == 0) {
@@ -73,12 +75,14 @@ request_access_token *
 request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rqstp)
 {
 	static request_access_token  result;
-	printf("%d\n", arg1.user_token.is_signed);
-	printf("aici acum\n");
+	//printf("%d\n", arg1.user_token.is_signed);
+	//printf("aici acum\n");
 	result.access_token = " ";
 	result.refresh_token = " ";
 	result.request_token = " ";
 	result.status = 0;
+	
+	printf("  RequestToken = %s\n", arg1.user_token.token_value);
 	if (arg1.user_token.is_signed == 1) {
 		result.access_token = generate_access_token(arg1.user_token.token_value);
 		if (arg1.user_token.is_automatic_refreshed == 1) {
@@ -96,14 +100,8 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 				//break;
 			//}
 		}
-		if (arg1.user_token.is_automatic_refreshed == 0) {
-			printf("BEGIN %s AUTHZ\n", arg1.id);
-			printf("  RequestToken = %s\n", result.request_token);
-			printf("  AccessToken = %s\n", result.access_token);
-		} else {
-			printf("BEGIN %s AUTHZ\n", arg1.id);
-			printf("  RequestToken = %s\n", result.request_token);
-			printf("  AccessToken = %s\n", result.access_token);
+		printf("  AccessToken = %s\n", result.access_token);
+		if (arg1.user_token.is_automatic_refreshed == 1) {
 			printf("  RefreshToken = %s\n", result.refresh_token);	
 		}
 	}
