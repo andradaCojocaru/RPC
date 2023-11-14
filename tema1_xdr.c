@@ -148,8 +148,6 @@ xdr_validate_action_params (XDR *xdrs, validate_action_params *objp)
 {
 	register int32_t *buf;
 
-	 if (!xdr_int (xdrs, &objp->ttl))
-		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->operation, ~0))
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->resource, ~0))

@@ -69,7 +69,6 @@ struct request_access_token {
 typedef struct request_access_token request_access_token;
 
 struct validate_action_params {
-	int ttl;
 	char *operation;
 	char *resource;
 	struct {
