@@ -91,14 +91,15 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 		result.request_token = arg1.user_token.token_value;
 		result.status = 1;
 		for (int i = 0; i < no_users; i++) {
-			//if (strcmp(db_users[i].user_id, arg1.id) == 0 ) {
-				//db_users[i].user_token.crt_permissions = arg1.user_token.crt_permissions;
-				//db_users[i].user_token.is_automatic_refreshed = arg1.user_token.is_automatic_refreshed;
-				//db_users[i].user_token.is_signed = arg1.user_token.is_signed;
-				//memcpy(db_users[i].user_token.token_value, arg1.user_token.token_value, SIZE_USER_ID);
+			if (strcmp(db_users[i].user_id, arg1.id) == 0 ) {
+				db_users[i].user_token.crt_permissions = arg1.user_token.crt_permissions;
+				db_users[i].user_token.is_automatic_refreshed = arg1.user_token.is_automatic_refreshed;
+				db_users[i].user_token.is_signed = arg1.user_token.is_signed;
+				//printf("token failed:%s\n", db_users[i].user_token.token_value);
+				memcpy(db_users[i].user_token.token_value, arg1.user_token.token_value, SIZE_USER_ID);
 				//db_users[i].user_token.ttl = arg1.user_token.ttl;
 				//break;
-			//}
+			}
 		}
 		printf("  AccessToken = %s\n", result.access_token);
 		if (arg1.user_token.is_automatic_refreshed == 1) {

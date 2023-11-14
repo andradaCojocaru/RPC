@@ -124,13 +124,13 @@ void read_clients(char *filename_clients)
 		printf("Allocation failed\n");
 		exit(1);
 	}
-	//db_users = (user_in_db *) calloc(no_users, sizeof(user_in_db));
+	db_users = (user_in_db *) calloc(no_users, sizeof(user_in_db));
 	//printf("problema\n");
 
-	//if (!db_users) {
-		//printf("Allocation failed\n");
-		//exit(1);
-	//}
+	if (!db_users) {
+		printf("Allocation failed\n");
+		exit(1);
+	}
 
 	for (int i = 0; i < no_users; i++) {
 		users[i] = (char *) calloc(SIZE_USER_ID, sizeof(char));
@@ -141,25 +141,26 @@ void read_clients(char *filename_clients)
 		}
 
 		fscanf(file_clients, "%s", users[i]);
-		//memcpy(db_users[i].user_id, users[i], SIZE_USER_ID);
+		db_users[i].user_id = (char *) calloc(SIZE_USER_ID, sizeof(char));
+		if (!db_users[i].user_id) {
+			printf("Allocations failed\n");
+			exit(1);
+		}
+		
+		memcpy(db_users[i].user_id, users[i], SIZE_USER_ID);
 
-		//db_users[i].user_id = (char *) calloc(SIZE_USER_ID, sizeof(char));
+		db_users[i].user_token.token_value = (char *) calloc(SIZE_USER_ID, sizeof(char));
+		if (!db_users[i].user_token.token_value) {
+			printf("Allocations failed\n");
+			exit(1);
+		}
+		db_users[i].user_token.crt_permissions = -1;
+		db_users[i].user_token.is_automatic_refreshed = 0;
+		db_users[i].user_token.is_signed = 0;
+		//db_users[i].user_token.token_value = " ";
+		db_users[i].user_token.ttl = 0;
 
-		//if (!db_users[i].user_id) {
-			//printf("Allocations failed\n");
-			//exit(1);
-		//}
-		//db_users[i].user_token.token_value = (char *) calloc(SIZE_USER_ID, sizeof(char));
-		//if (!db_users[i].user_token.token_value) {
-			//printf("Allocations failed\n");
-			//exit(1);
-		//}
-		//db_users->user_token.crt_permissions = -1;
-		//db_users->user_token.is_automatic_refreshed = 0;
-		//db_users->user_token.is_signed = 0;
-		//db_users->user_token.token_value = " ";
-		//db_users->user_token.ttl = 0;
-
+		//printf("%d\n", i);
 		//printf("%s\n", users[i]);
 	}
 	fclose(file_clients);
