@@ -47,8 +47,13 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
     result.ttl = 0;
     
     // Allocate memory for token_value
-    result.token_value = (char *)malloc((SIZE_USER_ID + 1) * sizeof(char));
+    result.token_value = (char *)malloc((SIZE_USER_ID) * sizeof(char));
 	if (!result.token_value) {
+		printf("Allocation failed\n");
+		exit(1);
+	}
+	result.refresh_token = (char *)malloc((SIZE_USER_ID) * sizeof(char));
+	if (!result.refresh_token) {
 		printf("Allocation failed\n");
 		exit(1);
 	}

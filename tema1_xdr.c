@@ -14,6 +14,8 @@ xdr_token (XDR *xdrs, token *objp)
 	if (xdrs->x_op == XDR_ENCODE) {
 		 if (!xdr_string (xdrs, &objp->token_value, ~0))
 			 return FALSE;
+		 if (!xdr_string (xdrs, &objp->refresh_token, ~0))
+			 return FALSE;
 		buf = XDR_INLINE (xdrs, 4 * BYTES_PER_XDR_UNIT);
 		if (buf == NULL) {
 			 if (!xdr_int (xdrs, &objp->ttl))
@@ -33,6 +35,8 @@ xdr_token (XDR *xdrs, token *objp)
 		return TRUE;
 	} else if (xdrs->x_op == XDR_DECODE) {
 		 if (!xdr_string (xdrs, &objp->token_value, ~0))
+			 return FALSE;
+		 if (!xdr_string (xdrs, &objp->refresh_token, ~0))
 			 return FALSE;
 		buf = XDR_INLINE (xdrs, 4 * BYTES_PER_XDR_UNIT);
 		if (buf == NULL) {
@@ -54,6 +58,8 @@ xdr_token (XDR *xdrs, token *objp)
 	}
 
 	 if (!xdr_string (xdrs, &objp->token_value, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->refresh_token, ~0))
 		 return FALSE;
 	 if (!xdr_int (xdrs, &objp->ttl))
 		 return FALSE;

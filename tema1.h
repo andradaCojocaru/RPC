@@ -20,6 +20,7 @@ extern "C" {
 
 struct token {
 	char *token_value;
+	char *refresh_token;
 	int ttl;
 	int is_signed;
 	int crt_permissions;
@@ -78,7 +79,7 @@ struct validate_action_params {
 };
 typedef struct validate_action_params validate_action_params;
 
-#define TEMA1_PROG 0x3123456
+#define TEMA1_PROG 0x3123457
 #define TEMA1_VERS 1
 
 #if defined(__STDC__) || defined(__cplusplus)

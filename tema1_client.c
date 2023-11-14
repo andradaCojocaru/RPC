@@ -61,7 +61,13 @@ tema1_prog_1(char *host, char *filename_operations)
 					printf("Allocation failed\n");
 					exit(1);
 				}
+				acces_token_params->user_token.refresh_token = (char *) calloc (SIZE_USER_ID, sizeof(char));
+				if (!acces_token_params->user_token.refresh_token) {
+					printf("Allocation failed\n");
+					exit(1);
+				}
 				memcpy(acces_token_params->user_token.token_value, new_token->token_value, SIZE_USER_ID);
+				memcpy(acces_token_params->user_token.refresh_token, new_token->refresh_token, SIZE_USER_ID);
 				acces_token_params->user_token.ttl = new_token->ttl;
 				request_access_token *acces_token = request_access_token_1(*acces_token_params, clnt);
 				//printf("%s\n", acces_token_params->id);

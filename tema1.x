@@ -1,5 +1,6 @@
 struct token {
 	string token_value<>;
+	string refresh_token<>;
 	int ttl;
 	int is_signed;
 	int crt_permissions;
@@ -51,4 +52,4 @@ program TEMA1_PROG {
 		request_access_token REQUEST_ACCESS_TOKEN(request_access_token_params) = 3;
 		int VALIDATE_DELEGATED_ACTION(validate_action_params) = 4;
 	} = 1;
-} = 0x3123456;
+} = 0x3123457;
