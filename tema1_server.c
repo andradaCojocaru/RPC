@@ -118,11 +118,73 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 int *
 validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rqstp)
 {
-	static int  result;
+	static int  result = 0;
+	int is_found_user_id = 0, is_found_resource = 0, crt_permission = arg1.user_token.user_token_val->crt_permissions,
+		is_found_permission_resource = 0, is_validated = 0;
 
-	/*
-	 * insert server code here
-	 */
+	for (int i = 0; i < no_users && result == 0; i++) {
+		if (strcmp(db_users[i].user_token.token_value, arg1.user_token.user_token_val->token_value) == 0) {
+			is_found_user_id = 1;
+			break;
+		}
+	}
+
+	if (is_found_user_id == 0) {
+		result = 1;
+	}
+
+	if (arg1.user_token.user_token_val->ttl <= 0 && result == 0) {
+		if (arg1.user_token.user_token_val->is_automatic_refreshed == 1) {
+			char *new_refresh_token = generate_access_token(arg1.user_token.user_token_val->token_value);
+			memcpy(arg1.user_token.user_token_val->token_value, arg1.user_token.user_token_val->refresh_token, SIZE_USER_ID);
+			memcpy(arg1.user_token.user_token_val->refresh_token, new_refresh_token, SIZE_USER_ID);
+			arg1.user_token.user_token_val->ttl = token_valability;
+		} else {
+			result = 2;
+		}
+	}
+
+	for (int i = 0; i < no_resources && result == 0; i++) {
+		if (strcmp(resources[i], arg1.resource) == 0) {
+			is_found_resource = 1;
+			break;
+		}
+	}
+
+	if (is_found_resource == 0 && result == 0) {
+		result = 3;
+	}
+
+
+	for (int i = 0; i < all_approvals[crt_approval].no_permissions && result == 0; i++) {
+		if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val[i].file, arg1.resource) == 0) {
+			is_found_permission_resource = 1;
+			char *permission = (char *) calloc (sizeof char);
+			char *R = strchr(permission, 'R');
+			char *X = strchr(permission, 'X');
+			char *M = strchr(permission, 'M');
+			char *I = strchr(permission, 'I');
+			char *D = strchr(permission, 'D');
+			memcpy(permission, all_approvals[crt_approval].list_permissions.list_permissions_val[i].permission, SIZE_PERMISSION);
+			if ((!R && strcmp(arg1.operation, 'READ') == 0) || (!X && strcmp(arg1.operation, 'EXECUTE') == 0)
+				|| (!M && strcmp(arg1.operation, 'MODIFY') == 0) || (!D && strcmp(arg1.operation, 'DELETE') == 0)
+				|| (!I && strcmp(arg1.operation, 'INSERT') == 0)) {
+					is_validated = 1;
+			}
+		}
+	}
+
+	if(is_validated == 0 && result == 0) {
+		result = 4;
+	}
+
+	arg1.user_token.user_token_val->ttl--;
+
+	if (result == 0) {
+		printf("PERMIT (%s,%s,%s,%d)", arg1.operation, arg1.resource, arg1.user_token.user_token_val->ttl);
+	} else {
+		printf("DENY (%s,%s,%s,%d)", arg1.operation, arg1.resource, arg1.user_token.user_token_val->ttl);
+	}
 
 	return &result;
 }

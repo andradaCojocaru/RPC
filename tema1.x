@@ -42,7 +42,7 @@ struct request_access_token {
 struct validate_action_params {
 	string operation<>;
 	string resource<>;
-	token user_token<>;
+	string user_id<>;
 };
 
 program TEMA1_PROG {

@@ -80,7 +80,7 @@ tema1_prog_1(char *host, char *filename_operations)
 				}
 			}
 		} else {
-			
+			int response = validate_delegated_action_1_svc(,  clnt);
 		}
 	}
 	fclose(file);
