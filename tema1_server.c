@@ -247,12 +247,11 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 		return &result;
 	}
 	result = 0;
+	display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
 	printf("PERMIT (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
  
 	//printf("result:%d\n", result);
 	//printf("token_valab:%d\n", token_valability);
-
-	display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
 
 	return &result;
 }

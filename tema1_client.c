@@ -139,13 +139,13 @@ int
 main (int argc, char *argv[])
 {
 	char *host, *filename_operations;
-	host = "localhost";
 
-	if (argc < 2) {
-		printf ("usage: %s fisier_operatii\n", argv[0]);
+	if (argc < 3) {
+		printf ("usage: %s host fisier_operatii\n", argv[0]);
 		exit (1);
 	}
-	filename_operations = argv[1];
+	host = argv[1];
+	filename_operations = argv[2];
 
 	tema1_prog_1 (host, filename_operations);
 exit (0);

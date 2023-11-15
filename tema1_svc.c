@@ -258,48 +258,24 @@ void read_approvals(char *filename_approvals) {
     fclose(file_approvals);
 }
 
-void read_token_valability (char *tokens_valability_file)
-{
-	FILE *file_tokens_valability = fopen(tokens_valability_file, "r");
-
-	if (file_tokens_valability == NULL) {
-		printf("Cannot open %s\n", tokens_valability_file);
-		exit(1);
-	}
-
-	char *text, *number;
-
-	while (fgets(buf, LINESIZE, file_tokens_valability)) {
-		text = strtok(buf, "=");
-		number = strtok(NULL, "=");
-
-		token_valability = atoi(number);
-		//printf("Token valab %d\n", token_valability);
-	}
-
-	fclose(file_tokens_valability);
-}
-
 int
 main (int argc, char **argv)
 {
-	//setvbuf(stdout, NULL, _IONBF, 0);
-
+	setbuf(stdout, NULL);
 	if (argc < 5) {
 		printf ("usage: %s fisier_clienti fisier_resurse fisier_aprobari valabilitate_jetoane\n", argv[0]);
 		exit (1);
 	}
 
-	char *filename_clients, *filename_resouces, *filename_approvals, *tokens_valability_file;
+	char *filename_clients, *filename_resouces, *filename_approvals;
 	filename_clients = argv[1];
 	filename_resouces = argv[2];
 	filename_approvals = argv[3];
-	tokens_valability_file = argv[4];
+	token_valability = atoi(argv[4]);
 
 	read_clients(filename_clients);
 	read_resources(filename_resouces);
 	read_approvals(filename_approvals);
-	read_token_valability(tokens_valability_file);
 
 	register SVCXPRT *transp;
 
