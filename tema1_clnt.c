@@ -25,13 +25,13 @@ request_authorization_1(char *arg1,  CLIENT *clnt)
 }
 
 token *
-approve_request_token_1(char *arg1,  CLIENT *clnt)
+approve_request_token_1(approve_request_params arg1,  CLIENT *clnt)
 {
 	static token clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, APPROVE_REQUEST_TOKEN,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) &arg1,
+		(xdrproc_t) xdr_approve_request_params, (caddr_t) &arg1,
 		(xdrproc_t) xdr_token, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);

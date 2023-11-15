@@ -61,7 +61,11 @@ tema1_prog_1(char *host, char *filename_operations)
 			if (req_a->status == 1) {
 				printf("USER_NOT_FOUND\n");
 			} else {
-				token *new_token = approve_request_token_1(req_a->request_token, clnt);
+				approve_request_params *approve_params = (approve_request_params *) calloc (1, sizeof(approve_request_params));
+				approve_params->is_automatic_refreshed = automated_refresh;
+				approve_params->token_value = (char *) calloc (SIZE_USER_ID, sizeof(char));
+				memcpy(approve_params->token_value, req_a->request_token, SIZE_USER_ID);
+				token *new_token = approve_request_token_1(*approve_params, clnt);
 				//printf("token_valab:%d\n", new_token->ttl);
 				request_access_token_params *acces_token_params = (request_access_token_params *) calloc (1, sizeof(request_access_token_params));
 				if (!acces_token_params) {

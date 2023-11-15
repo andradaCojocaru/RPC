@@ -45,10 +45,15 @@ struct validate_action_params {
 	string user_id<>;
 };
 
+struct approve_request_params {
+	string token_value<>;
+	int is_automatic_refreshed;
+};
+
 program TEMA1_PROG {
 	version TEMA1_VERS {
 		request_authorization REQUEST_AUTHORIZATION(string) = 1;
-        token APPROVE_REQUEST_TOKEN(string) = 2;
+        token APPROVE_REQUEST_TOKEN(approve_request_params) = 2;
 		request_access_token REQUEST_ACCESS_TOKEN(request_access_token_params) = 3;
 		int VALIDATE_DELEGATED_ACTION(validate_action_params) = 4;
 	} = 1;

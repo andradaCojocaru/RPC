@@ -44,7 +44,7 @@ request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 }
 
 token *
-approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
+approve_request_token_1_svc(approve_request_params arg1,  struct svc_req *rqstp)
 {
     // for (int i = 0; i < no_approvals; i++) {
     //     for (int j = 0; j < all_approvals[i].no_permissions; j++) {
@@ -54,7 +54,7 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
 
     static token result;
     result.crt_permissions = crt_approval;
-    result.is_automatic_refreshed = 0;
+    result.is_automatic_refreshed = arg1.is_automatic_refreshed;
     result.is_signed = 0;
     result.ttl = token_valability;
     
@@ -70,7 +70,7 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
 		exit(1);
 	}
 
-    memcpy(result.token_value, arg1, SIZE_USER_ID);
+    memcpy(result.token_value, arg1.token_value, SIZE_USER_ID);
 
     //printf("permisiuni date %d\n", all_approvals[crt_approval].no_permissions);
 
@@ -114,7 +114,8 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 				db_users[i].user_token.is_automatic_refreshed = arg1.user_token.is_automatic_refreshed;
 				db_users[i].user_token.is_signed = arg1.user_token.is_signed;
 				//printf("token failed:%s\n", db_users[i].user_token.token_value);
-				memcpy(db_users[i].user_token.token_value, arg1.user_token.token_value, SIZE_USER_ID);
+				memcpy(db_users[i].user_token.token_value, result.access_token, SIZE_USER_ID);
+				memcpy(db_users[i].user_token.refresh_token, result.refresh_token, SIZE_USER_ID);
 				//printf("ttl:%d\n", arg1.user_token.ttl);
 				db_users[i].user_token.ttl = arg1.user_token.ttl;
 				break;
@@ -129,12 +130,22 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 	return &result;
 }
 
+void display_message(int need_refreshed, char *new_acces_token, char *new_refresh_token, validate_action_params arg1) {
+	if (need_refreshed == 1) {
+		printf("BEGIN %s AUTHZ REFRESH\n", arg1.user_id);
+
+		printf("  AccessToken = %s\n", new_acces_token);
+		printf("  RefreshToken = %s\n", new_refresh_token);
+	}
+}
+
 int *
 validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rqstp)
 {
 	static int  result = 0;
-	int crt_permission, is_find_id = 0, is_find_resource = 0, is_validate = 0;
+	int crt_permission, is_find_id = 0, is_find_resource = 0, is_validate = 0, need_refreshed = 0;
 	token found_token;
+	char *new_acces_token, *new_refresh_token;
 
 	// for (int i = 0; i < no_users; i++) {
 	// 	printf("user_id : %s\n", db_users[i].user_id);
@@ -148,6 +159,21 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 			//printf("id %s\n", db_users[i].user_id);
 			//printf("ttl %d\n", db_users[i].user_token.ttl);
 			crt_permission = found_token.crt_permissions;
+			if (found_token.ttl == 0) {
+				if (found_token.is_automatic_refreshed == 1) {
+					new_acces_token = generate_access_token(found_token.refresh_token);
+					new_refresh_token = generate_access_token(new_acces_token);
+					
+					memcpy(db_users[i].user_token.token_value, new_acces_token, SIZE_USER_ID);
+					memcpy(db_users[i].user_token.refresh_token, new_refresh_token, SIZE_USER_ID);
+
+					db_users[i].user_token.ttl = token_valability;
+					found_token.ttl = token_valability;
+					need_refreshed = 1;
+				} else {
+					memcpy(db_users[i].user_token.token_value, "", SIZE_USER_ID);
+				}
+			}
 			//printf("crt_perm %d\n", crt_permission);
 			if (crt_permission != -1) {
 				is_find_id = 1;
@@ -161,19 +187,16 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 
 	if (is_find_id == 0) {
 		result = 1;
+		display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
 		printf("DENY (%s,%s,,0)\n", arg1.operation, arg1.resource);
 		return &result;
 	}
 
 	//printf("ttl found%d\n", found_token.ttl);
 	if (found_token.ttl == 0) {
-		if (found_token.is_automatic_refreshed == 1) {
-			char *new_refresh_token = generate_access_token(found_token.token_value);
-			memcpy(found_token.token_value, found_token.refresh_token, SIZE_USER_ID);
-			memcpy(found_token.refresh_token, new_refresh_token, SIZE_USER_ID);
-			found_token.ttl = token_valability;
-		} else {
+		if (found_token.is_automatic_refreshed == 0) {
 			result = 2;
+			display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
 			printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
 			return &result;
 		}
@@ -188,6 +211,7 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 
 	if (is_find_resource == 0) {
 		result = 3;
+		display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
 		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
 		return &result;
 	}
@@ -218,6 +242,7 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 
 	if (is_validate == 0) {
 		result = 4;
+		display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
 		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
 		return &result;
 	}
@@ -226,6 +251,8 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
  
 	//printf("result:%d\n", result);
 	//printf("token_valab:%d\n", token_valability);
+
+	display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
 
 	return &result;
 }

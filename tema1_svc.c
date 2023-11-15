@@ -29,7 +29,7 @@ _request_authorization_1 (char * *argp, struct svc_req *rqstp)
 }
 
 static token *
-_approve_request_token_1 (char * *argp, struct svc_req *rqstp)
+_approve_request_token_1 (approve_request_params  *argp, struct svc_req *rqstp)
 {
 	return (approve_request_token_1_svc(*argp, rqstp));
 }
@@ -51,7 +51,7 @@ tema1_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 {
 	union {
 		char *request_authorization_1_arg;
-		char *approve_request_token_1_arg;
+		approve_request_params approve_request_token_1_arg;
 		request_access_token_params request_access_token_1_arg;
 		validate_action_params validate_delegated_action_1_arg;
 	} argument;
@@ -71,7 +71,7 @@ tema1_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		break;
 
 	case APPROVE_REQUEST_TOKEN:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
+		_xdr_argument = (xdrproc_t) xdr_approve_request_params;
 		_xdr_result = (xdrproc_t) xdr_token;
 		local = (char *(*)(char *, struct svc_req *)) _approve_request_token_1;
 		break;
@@ -150,6 +150,7 @@ void read_clients(char *filename_clients)
 		memcpy(db_users[i].user_id, users[i], SIZE_USER_ID);
 
 		db_users[i].user_token.token_value = (char *) calloc(SIZE_USER_ID, sizeof(char));
+		db_users[i].user_token.refresh_token = (char *) calloc(SIZE_USER_ID, sizeof(char));
 		if (!db_users[i].user_token.token_value) {
 			printf("Allocations failed\n");
 			exit(1);

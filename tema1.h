@@ -76,6 +76,12 @@ struct validate_action_params {
 };
 typedef struct validate_action_params validate_action_params;
 
+struct approve_request_params {
+	char *token_value;
+	int is_automatic_refreshed;
+};
+typedef struct approve_request_params approve_request_params;
+
 #define TEMA1_PROG 0x3123457
 #define TEMA1_VERS 1
 
@@ -84,8 +90,8 @@ typedef struct validate_action_params validate_action_params;
 extern  request_authorization * request_authorization_1(char *, CLIENT *);
 extern  request_authorization * request_authorization_1_svc(char *, struct svc_req *);
 #define APPROVE_REQUEST_TOKEN 2
-extern  token * approve_request_token_1(char *, CLIENT *);
-extern  token * approve_request_token_1_svc(char *, struct svc_req *);
+extern  token * approve_request_token_1(approve_request_params , CLIENT *);
+extern  token * approve_request_token_1_svc(approve_request_params , struct svc_req *);
 #define REQUEST_ACCESS_TOKEN 3
 extern  request_access_token * request_access_token_1(request_access_token_params , CLIENT *);
 extern  request_access_token * request_access_token_1_svc(request_access_token_params , struct svc_req *);
@@ -121,6 +127,7 @@ extern  bool_t xdr_request_authorization (XDR *, request_authorization*);
 extern  bool_t xdr_request_access_token_params (XDR *, request_access_token_params*);
 extern  bool_t xdr_request_access_token (XDR *, request_access_token*);
 extern  bool_t xdr_validate_action_params (XDR *, validate_action_params*);
+extern  bool_t xdr_approve_request_params (XDR *, approve_request_params*);
 
 #else /* K&R C */
 extern bool_t xdr_token ();
@@ -131,6 +138,7 @@ extern bool_t xdr_request_authorization ();
 extern bool_t xdr_request_access_token_params ();
 extern bool_t xdr_request_access_token ();
 extern bool_t xdr_validate_action_params ();
+extern bool_t xdr_approve_request_params ();
 
 #endif /* K&R C */
 
