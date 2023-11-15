@@ -12,6 +12,18 @@ extern user_in_db *db_users;
 extern char **users, **resources;
 extern int no_users, no_resources, token_valability, no_approvals, crt_approval;
 
+int isLetterInWord(const char *word, char letter) {
+	int isLetterInWord = 0;
+    while (*word != '\0') {
+        if (*word == letter) {
+            return isLetterInWord;  // Letter found
+        }
+        word++;
+    }
+	isLetterInWord = 1;
+    return isLetterInWord;  // Letter not found
+}
+
 request_authorization *
 request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 {
@@ -44,7 +56,7 @@ approve_request_token_1_svc(char *arg1,  struct svc_req *rqstp)
     result.crt_permissions = crt_approval;
     result.is_automatic_refreshed = 0;
     result.is_signed = 0;
-    result.ttl = 0;
+    result.ttl = token_valability;
     
     // Allocate memory for token_value
     result.token_value = (char *)malloc((SIZE_USER_ID) * sizeof(char));
@@ -95,6 +107,7 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 		}
 		result.request_token = arg1.user_token.token_value;
 		result.status = 1;
+		//printf("no_users:%d\n", no_users);
 		for (int i = 0; i < no_users; i++) {
 			if (strcmp(db_users[i].user_id, arg1.id) == 0 ) {
 				db_users[i].user_token.crt_permissions = arg1.user_token.crt_permissions;
@@ -102,8 +115,9 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 				db_users[i].user_token.is_signed = arg1.user_token.is_signed;
 				//printf("token failed:%s\n", db_users[i].user_token.token_value);
 				memcpy(db_users[i].user_token.token_value, arg1.user_token.token_value, SIZE_USER_ID);
-				//db_users[i].user_token.ttl = arg1.user_token.ttl;
-				//break;
+				//printf("ttl:%d\n", arg1.user_token.ttl);
+				db_users[i].user_token.ttl = arg1.user_token.ttl;
+				break;
 			}
 		}
 		printf("  AccessToken = %s\n", result.access_token);
@@ -119,72 +133,99 @@ int *
 validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rqstp)
 {
 	static int  result = 0;
-	int is_found_user_id = 0, is_found_resource = 0, crt_permission = arg1.user_token.user_token_val->crt_permissions,
-		is_found_permission_resource = 0, is_validated = 0;
+	int crt_permission, is_find_id = 0, is_find_resource = 0, is_validate = 0;
+	token found_token;
 
-	for (int i = 0; i < no_users && result == 0; i++) {
-		if (strcmp(db_users[i].user_token.token_value, arg1.user_token.user_token_val->token_value) == 0) {
-			is_found_user_id = 1;
+	// for (int i = 0; i < no_users; i++) {
+	// 	printf("user_id : %s\n", db_users[i].user_id);
+	// }
+
+	//printf("user_id:%s\n", arg1.user_id);
+	for (int i = 0; i < no_users; i++) {
+		//printf("id %d: %s\n", i, db_users[i].user_id);
+		if (strcmp(db_users[i].user_id, arg1.user_id) == 0) {
+			found_token = db_users[i].user_token;
+			//printf("id %s\n", db_users[i].user_id);
+			//printf("ttl %d\n", db_users[i].user_token.ttl);
+			crt_permission = found_token.crt_permissions;
+			//printf("crt_perm %d\n", crt_permission);
+			if (crt_permission != -1) {
+				is_find_id = 1;
+				if (db_users[i].user_token.ttl > 0) {
+					db_users[i].user_token.ttl--;
+				}
+			}
 			break;
 		}
 	}
 
-	if (is_found_user_id == 0) {
+	if (is_find_id == 0) {
 		result = 1;
+		printf("DENY (%s,%s,,0)\n", arg1.operation, arg1.resource);
+		return &result;
 	}
 
-	if (arg1.user_token.user_token_val->ttl <= 0 && result == 0) {
-		if (arg1.user_token.user_token_val->is_automatic_refreshed == 1) {
-			char *new_refresh_token = generate_access_token(arg1.user_token.user_token_val->token_value);
-			memcpy(arg1.user_token.user_token_val->token_value, arg1.user_token.user_token_val->refresh_token, SIZE_USER_ID);
-			memcpy(arg1.user_token.user_token_val->refresh_token, new_refresh_token, SIZE_USER_ID);
-			arg1.user_token.user_token_val->ttl = token_valability;
+	//printf("ttl found%d\n", found_token.ttl);
+	if (found_token.ttl == 0) {
+		if (found_token.is_automatic_refreshed == 1) {
+			char *new_refresh_token = generate_access_token(found_token.token_value);
+			memcpy(found_token.token_value, found_token.refresh_token, SIZE_USER_ID);
+			memcpy(found_token.refresh_token, new_refresh_token, SIZE_USER_ID);
+			found_token.ttl = token_valability;
 		} else {
 			result = 2;
+			printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
+			return &result;
 		}
 	}
 
-	for (int i = 0; i < no_resources && result == 0; i++) {
+	for (int i = 0; i < no_resources; i++) {
 		if (strcmp(resources[i], arg1.resource) == 0) {
-			is_found_resource = 1;
-			break;
+			is_find_resource = 1;
 		}
 	}
+	found_token.ttl--;
 
-	if (is_found_resource == 0 && result == 0) {
+	if (is_find_resource == 0) {
 		result = 3;
+		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
+		return &result;
 	}
 
-
-	for (int i = 0; i < all_approvals[crt_approval].no_permissions && result == 0; i++) {
-		if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val[i].file, arg1.resource) == 0) {
-			is_found_permission_resource = 1;
-			char *permission = (char *) calloc (sizeof char);
-			char *R = strchr(permission, 'R');
-			char *X = strchr(permission, 'X');
-			char *M = strchr(permission, 'M');
-			char *I = strchr(permission, 'I');
-			char *D = strchr(permission, 'D');
-			memcpy(permission, all_approvals[crt_approval].list_permissions.list_permissions_val[i].permission, SIZE_PERMISSION);
-			if ((!R && strcmp(arg1.operation, 'READ') == 0) || (!X && strcmp(arg1.operation, 'EXECUTE') == 0)
-				|| (!M && strcmp(arg1.operation, 'MODIFY') == 0) || (!D && strcmp(arg1.operation, 'DELETE') == 0)
-				|| (!I && strcmp(arg1.operation, 'INSERT') == 0)) {
-					is_validated = 1;
+	if (is_find_id == 1) {
+		//printf("crt:%d\n", crt_permission);
+		//printf("no_permission:%d\n", all_approvals[crt_permission].no_permissions);
+		for (int i = 0; i < all_approvals[crt_permission].no_permissions; i++) {
+			if (strcmp(all_approvals[crt_permission].list_permissions.list_permissions_val[i].file, arg1.resource) == 0) {
+				char *permission = (char *) calloc (SIZE_PERMISSION,  sizeof(char ));
+				memcpy(permission, all_approvals[crt_permission].list_permissions.list_permissions_val[i].permission, SIZE_PERMISSION);
+				char *file = (char *) calloc (SIZE_RESOURCE_NAME, sizeof(char));
+				memcpy(file, all_approvals[crt_permission].list_permissions.list_permissions_val[i].file, SIZE_RESOURCE_NAME);
+				//printf("operation: %s, on: %s\n", arg1.operation, arg1.resource);
+				//printf("permission: %s, file: %s\n", permission, file);
+				if (strcmp(arg1.resource, file) == 0) {
+					if ((isLetterInWord(permission, 'R') == 0 && strcmp(arg1.operation, "READ") == 0) 
+						|| (isLetterInWord(permission, 'X') == 0 && strcmp(arg1.operation, "EXECUTE") == 0)
+						|| (isLetterInWord(permission, 'M') == 0 && strcmp(arg1.operation, "MODIFY") == 0)
+						|| (isLetterInWord(permission, 'D') == 0 && strcmp(arg1.operation, "DELETE") == 0)
+						|| (isLetterInWord(permission, 'I') == 0 && strcmp(arg1.operation, "INSERT") == 0)) {
+						is_validate = 1;
+					}
+				}
 			}
 		}
 	}
 
-	if(is_validated == 0 && result == 0) {
+	if (is_validate == 0) {
 		result = 4;
+		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
+		return &result;
 	}
-
-	arg1.user_token.user_token_val->ttl--;
-
-	if (result == 0) {
-		printf("PERMIT (%s,%s,%s,%d)", arg1.operation, arg1.resource, arg1.user_token.user_token_val->ttl);
-	} else {
-		printf("DENY (%s,%s,%s,%d)", arg1.operation, arg1.resource, arg1.user_token.user_token_val->ttl);
-	}
+	result = 0;
+	printf("PERMIT (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
+ 
+	//printf("result:%d\n", result);
+	//printf("token_valab:%d\n", token_valability);
 
 	return &result;
 }

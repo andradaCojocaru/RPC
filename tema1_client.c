@@ -8,6 +8,25 @@
 
 char buf[LINESIZE];
 
+
+void replaceFirstSpaceWithNewline(char *str) {
+    char *start = str;
+    char *end = str + strlen(str) - 1;
+
+    // Remove leading whitespaces
+    while (*start && (*start == ' ' || *start == '\t')) {
+        start++;
+    }
+
+    // Remove trailing whitespaces
+    while (end > start && (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r')) {
+        end--;
+    }
+
+    // Null-terminate the string at the last non-whitespace character
+    *(end + 1) = '\0';
+}
+
 void
 tema1_prog_1(char *host, char *filename_operations)
 {
@@ -32,6 +51,7 @@ tema1_prog_1(char *host, char *filename_operations)
 		user_id = strtok(buf, ",");
 		operation = strtok(NULL, ",");
 		type = strtok(NULL, ",");
+		replaceFirstSpaceWithNewline(type);
 
 		if (strcmp(operation, "REQUEST") == 0) {
 			int automated_refresh = atoi(type);
@@ -42,6 +62,7 @@ tema1_prog_1(char *host, char *filename_operations)
 				printf("USER_NOT_FOUND\n");
 			} else {
 				token *new_token = approve_request_token_1(req_a->request_token, clnt);
+				//printf("token_valab:%d\n", new_token->ttl);
 				request_access_token_params *acces_token_params = (request_access_token_params *) calloc (1, sizeof(request_access_token_params));
 				if (!acces_token_params) {
 					printf("Allocation failed\n");
@@ -69,6 +90,7 @@ tema1_prog_1(char *host, char *filename_operations)
 				memcpy(acces_token_params->user_token.token_value, new_token->token_value, SIZE_USER_ID);
 				memcpy(acces_token_params->user_token.refresh_token, new_token->refresh_token, SIZE_USER_ID);
 				acces_token_params->user_token.ttl = new_token->ttl;
+				//printf("%d\n", acces_token_params->user_token.ttl);
 				request_access_token *acces_token = request_access_token_1(*acces_token_params, clnt);
 				//printf("%s\n", acces_token_params->id);
 				if (acces_token->status == 0) {
@@ -80,7 +102,25 @@ tema1_prog_1(char *host, char *filename_operations)
 				}
 			}
 		} else {
-			int response = validate_delegated_action_1_svc(,  clnt);
+			validate_action_params *param = (validate_action_params *) calloc(1, sizeof(validate_action_params));
+			param->operation = (char *) calloc(sizeof(operation), sizeof(char));
+			param->resource = (char *) calloc(sizeof(type), sizeof(char));
+			param->user_id = (char *) calloc(sizeof(user_id), sizeof(char));
+			memcpy(param->user_id, user_id, SIZE_USER_ID);
+			memcpy(param->resource, type, SIZE_RESOURCE_NAME);
+			memcpy(param->operation, operation, SIZE_PERMISSION);
+			int *response = validate_delegated_action_1(*param,  clnt);
+			if (*response == 0) {
+				printf("PERMISSION_GRANTED\n");
+			} else if (*response == 1) {
+				printf("PERMISSION_DENIED\n");
+			} else if (*response == 2) {
+				printf("TOKEN_EXPIRED\n");
+			} else if (*response == 3) {
+				printf("RESOURCE_NOT_FOUND\n");
+			} else if (*response == 4) {
+				printf("OPERATION_NOT_PERMITTED\n");
+			}
 		}
 	}
 	fclose(file);

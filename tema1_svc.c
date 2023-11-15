@@ -161,7 +161,7 @@ void read_clients(char *filename_clients)
 		db_users[i].user_token.ttl = 0;
 
 		//printf("%d\n", i);
-		//printf("%s\n", users[i]);
+		//printf("user_id : %s\n", db_users[i].user_id);
 	}
 	fclose(file_clients);
 }
@@ -282,6 +282,8 @@ void read_token_valability (char *tokens_valability_file)
 int
 main (int argc, char **argv)
 {
+	//setvbuf(stdout, NULL, _IONBF, 0);
+
 	if (argc < 5) {
 		printf ("usage: %s fisier_clienti fisier_resurse fisier_aprobari valabilitate_jetoane\n", argv[0]);
 		exit (1);

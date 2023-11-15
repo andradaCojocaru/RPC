@@ -158,8 +158,7 @@ xdr_validate_action_params (XDR *xdrs, validate_action_params *objp)
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->resource, ~0))
 		 return FALSE;
-	 if (!xdr_array (xdrs, (char **)&objp->user_token.user_token_val, (u_int *) &objp->user_token.user_token_len, ~0,
-		sizeof (token), (xdrproc_t) xdr_token))
+	 if (!xdr_string (xdrs, &objp->user_id, ~0))
 		 return FALSE;
 	return TRUE;
 }

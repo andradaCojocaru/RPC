@@ -72,10 +72,7 @@ typedef struct request_access_token request_access_token;
 struct validate_action_params {
 	char *operation;
 	char *resource;
-	struct {
-		u_int user_token_len;
-		token *user_token_val;
-	} user_token;
+	char *user_id;
 };
 typedef struct validate_action_params validate_action_params;
 
