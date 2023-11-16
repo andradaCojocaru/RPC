@@ -19,7 +19,8 @@ void replaceFirstSpaceWithNewline(char *str) {
     }
 
     // Remove trailing whitespaces
-    while (end > start && (*end == ' ' || *end == '\t' || *end == '\n' || *end == '\r')) {
+    while (end > start && (*end == ' ' || *end == '\t' || *end == '\n' 
+		|| *end == '\r')) {
         end--;
     }
 
@@ -47,72 +48,119 @@ tema1_prog_1(char *host, char *filename_operations)
 
 	char *user_id, *operation, *type;
 
+	// read line by line
 	while (fgets(buf, LINESIZE, file)) {
+		// parse line by ','
 		user_id = strtok(buf, ",");
 		operation = strtok(NULL, ",");
 		type = strtok(NULL, ",");
 		replaceFirstSpaceWithNewline(type);
 
+		// request operation
 		if (strcmp(operation, "REQUEST") == 0) {
 			int automated_refresh = atoi(type);
-			//printf("request %d; user %s\n", automated_refresh, user_id);
-			request_authorization *req_a =  request_authorization_1(user_id, clnt);
+			request_authorization *req_a =  
+				request_authorization_1(user_id, clnt);
 
 			if (req_a->status == 1) {
 				printf("USER_NOT_FOUND\n");
 			} else {
-				approve_request_params *approve_params = (approve_request_params *) calloc (1, sizeof(approve_request_params));
+				// continue operations
+				// create param to call approve request
+				approve_request_params *approve_params =
+					(approve_request_params *) calloc
+					(1, sizeof(approve_request_params));
 				approve_params->is_automatic_refreshed = automated_refresh;
-				approve_params->token_value = (char *) calloc (SIZE_USER_ID, sizeof(char));
-				memcpy(approve_params->token_value, req_a->request_token, SIZE_USER_ID);
-				token *new_token = approve_request_token_1(*approve_params, clnt);
-				//printf("token_valab:%d\n", new_token->ttl);
-				request_access_token_params *acces_token_params = (request_access_token_params *) calloc (1, sizeof(request_access_token_params));
-				if (!acces_token_params) {
-					printf("Allocation failed\n");
+				approve_params->token_value = (char *)
+					calloc (SIZE_USER_ID, sizeof(char));
+				if (!approve_params->token_value) {
+					printf("Allocation approve_params->token_value failed\n");
 					exit(1);
 				}
-				acces_token_params->id = (char *) calloc (SIZE_USER_ID, sizeof(char));
+				memcpy(approve_params->token_value, req_a->request_token,
+					SIZE_USER_ID);
+				token *new_token = approve_request_token_1(*approve_params,
+					clnt);
+
+				// create param to call request access
+				request_access_token_params *acces_token_params =
+					(request_access_token_params *) calloc
+					(1, sizeof(request_access_token_params));
+				if (!acces_token_params) {
+					printf("Allocation acces_token_params failed\n");
+					exit(1);
+				}
+				acces_token_params->id = (char *) calloc (SIZE_USER_ID,
+					sizeof(char));
 				if (!acces_token_params->id) {
-					printf("Allocation failed\n");
+					printf("Allocation acces_token_params->id failed\n");
 					exit(1);
 				}
 				memcpy(acces_token_params->id, user_id, SIZE_USER_ID);
-				acces_token_params->user_token.crt_permissions = new_token->crt_permissions;
-				acces_token_params->user_token.is_automatic_refreshed = new_token->is_automatic_refreshed;
-				acces_token_params->user_token.is_signed = new_token->is_signed;
-				acces_token_params->user_token.token_value = (char *) calloc (SIZE_USER_ID, sizeof(char));
+				acces_token_params->user_token.crt_permissions =
+					new_token->crt_permissions;
+				acces_token_params->user_token.is_automatic_refreshed =
+					new_token->is_automatic_refreshed;
+				acces_token_params->user_token.is_signed =
+					new_token->is_signed;
+				acces_token_params->user_token.token_value = (char *) calloc 
+					(SIZE_USER_ID, sizeof(char));
 				if (!acces_token_params->user_token.token_value) {
-					printf("Allocation failed\n");
+					printf("Allocation acces_token_params->user_token.token_value failed\n");
 					exit(1);
 				}
-				acces_token_params->user_token.refresh_token = (char *) calloc (SIZE_USER_ID, sizeof(char));
+				acces_token_params->user_token.refresh_token = (char *) calloc
+					(SIZE_USER_ID, sizeof(char));
 				if (!acces_token_params->user_token.refresh_token) {
-					printf("Allocation failed\n");
+					printf("Allocation acces_token_params->user_token.refresh_token failed\n");
 					exit(1);
 				}
-				memcpy(acces_token_params->user_token.token_value, new_token->token_value, SIZE_USER_ID);
-				memcpy(acces_token_params->user_token.refresh_token, new_token->refresh_token, SIZE_USER_ID);
+				memcpy(acces_token_params->user_token.token_value, 
+					new_token->token_value, SIZE_USER_ID);
+				memcpy(acces_token_params->user_token.refresh_token, 
+					new_token->refresh_token, SIZE_USER_ID);
 				acces_token_params->user_token.ttl = new_token->ttl;
-				//printf("%d\n", acces_token_params->user_token.ttl);
-				request_access_token *acces_token = request_access_token_1(*acces_token_params, clnt);
-				//printf("%s\n", acces_token_params->id);
+
+				request_access_token *acces_token = 
+					request_access_token_1(*acces_token_params, clnt);
 				if (acces_token->status == 0) {
 					printf("REQUEST_DENIED\n");
 				} else if (!new_token->is_automatic_refreshed){
-					printf("%s -> %s\n", acces_token->request_token, acces_token->access_token);
+					printf("%s -> %s\n", acces_token->request_token,
+						acces_token->access_token);
 				} else {
-					printf("%s -> %s,%s\n", acces_token->request_token, acces_token->access_token, acces_token->refresh_token);
+					printf("%s -> %s,%s\n", acces_token->request_token,
+						acces_token->access_token, acces_token->refresh_token);
 				}
 			}
+		// action
 		} else {
-			validate_action_params *param = (validate_action_params *) calloc(1, sizeof(validate_action_params));
+			// create param to call validate action
+			validate_action_params *param = (validate_action_params *)
+				calloc(1, sizeof(validate_action_params));
+			if (!param) {
+				printf("Allocation param failed\n");
+				exit(1);
+			}
 			param->operation = (char *) calloc(sizeof(operation), sizeof(char));
+			if (!param->operation) {
+				printf("Allocation param->operation failed\n");
+				exit(1);
+			}
 			param->resource = (char *) calloc(sizeof(type), sizeof(char));
+			if (!param->resource) {
+				printf("Allocation param->resource failed\n");
+				exit(1);
+			}
 			param->user_id = (char *) calloc(sizeof(user_id), sizeof(char));
+			if (!param->user_id) {
+				printf("Allocation param->user_id failed\n");
+				exit(1);
+			}
 			memcpy(param->user_id, user_id, SIZE_USER_ID);
 			memcpy(param->resource, type, SIZE_RESOURCE_NAME);
 			memcpy(param->operation, operation, SIZE_PERMISSION);
+			
 			int *response = validate_delegated_action_1(*param,  clnt);
 			if (*response == 0) {
 				printf("PERMISSION_GRANTED\n");

@@ -39,18 +39,12 @@ request_authorization_1_svc(char *arg1,  struct svc_req *rqstp)
 			break;
 		}
 	}
-	//printf("ai iesi din autho\n");
 	return &result;
 }
 
 token *
 approve_request_token_1_svc(approve_request_params arg1,  struct svc_req *rqstp)
 {
-    // for (int i = 0; i < no_approvals; i++) {
-    //     for (int j = 0; j < all_approvals[i].no_permissions; j++) {
-    //         printf("%s %s\n", all_approvals[i].list_permissions.list_permissions_val[j].file, all_approvals[i].list_permissions.list_permissions_val[j].permission);
-    //     }
-    // }
 
     static token result;
     result.crt_permissions = crt_approval;
@@ -58,7 +52,6 @@ approve_request_token_1_svc(approve_request_params arg1,  struct svc_req *rqstp)
     result.is_signed = 0;
     result.ttl = token_valability;
     
-    // Allocate memory for token_value
     result.token_value = (char *)malloc((SIZE_USER_ID) * sizeof(char));
 	if (!result.token_value) {
 		printf("Allocation failed\n");
@@ -72,51 +65,59 @@ approve_request_token_1_svc(approve_request_params arg1,  struct svc_req *rqstp)
 
     memcpy(result.token_value, arg1.token_value, SIZE_USER_ID);
 
-    //printf("permisiuni date %d\n", all_approvals[crt_approval].no_permissions);
-
-    if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->file, "*") == 0) {
-        if (strcmp(all_approvals[crt_approval].list_permissions.list_permissions_val->permission, "-") == 0) {
+	// if *, -> not signed
+    if (strcmp(all_approvals[crt_approval].list_permissions
+		.list_permissions_val->file, "*") == 0) {
+        if (strcmp(all_approvals[crt_approval].list_permissions
+			.list_permissions_val->permission, "-") == 0) {
             result.is_signed = 0;
         }
     } else {
         result.is_signed = 1;
     }
+	// increment index of approval to give
 	crt_approval++;
-
-    //printf("nr_crt_approval %d\n", crt_approval);
 
     return &result;
 }
 
 request_access_token *
-request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rqstp)
+request_access_token_1_svc(request_access_token_params arg1,
+	struct svc_req *rqstp)
 {
 	static request_access_token  result;
-	//printf("%d\n", arg1.user_token.is_signed);
-	//printf("aici acum\n");
 	result.access_token = " ";
 	result.refresh_token = " ";
 	result.request_token = " ";
 	result.status = 0;
 	
 	printf("  RequestToken = %s\n", arg1.user_token.token_value);
+
+	// token is signed
 	if (arg1.user_token.is_signed == 1) {
 		result.access_token = generate_access_token(arg1.user_token.token_value);
+		// token is automatically refreshed
 		if (arg1.user_token.is_automatic_refreshed == 1) {
 			result.refresh_token = generate_access_token(result.access_token);
 		}
 		result.request_token = arg1.user_token.token_value;
+
+		// make default status accept
 		result.status = 1;
-		//printf("no_users:%d\n", no_users);
+
+		// check for given id in user db
 		for (int i = 0; i < no_users; i++) {
 			if (strcmp(db_users[i].user_id, arg1.id) == 0 ) {
-				db_users[i].user_token.crt_permissions = arg1.user_token.crt_permissions;
-				db_users[i].user_token.is_automatic_refreshed = arg1.user_token.is_automatic_refreshed;
+				// put the value given in user db
+				db_users[i].user_token.crt_permissions = arg1.user_token
+					.crt_permissions;
+				db_users[i].user_token.is_automatic_refreshed = arg1.user_token
+					.is_automatic_refreshed;
 				db_users[i].user_token.is_signed = arg1.user_token.is_signed;
-				//printf("token failed:%s\n", db_users[i].user_token.token_value);
-				memcpy(db_users[i].user_token.token_value, result.access_token, SIZE_USER_ID);
-				memcpy(db_users[i].user_token.refresh_token, result.refresh_token, SIZE_USER_ID);
-				//printf("ttl:%d\n", arg1.user_token.ttl);
+				memcpy(db_users[i].user_token.token_value, result.access_token,
+					SIZE_USER_ID);
+				memcpy(db_users[i].user_token.refresh_token, result.refresh_token,
+					SIZE_USER_ID);
 				db_users[i].user_token.ttl = arg1.user_token.ttl;
 				break;
 			}
@@ -130,7 +131,8 @@ request_access_token_1_svc(request_access_token_params arg1,  struct svc_req *rq
 	return &result;
 }
 
-void display_message(int need_refreshed, char *new_acces_token, char *new_refresh_token, validate_action_params arg1) {
+void display_message(int need_refreshed, char *new_acces_token,
+	char *new_refresh_token, validate_action_params arg1) {
 	if (need_refreshed == 1) {
 		printf("BEGIN %s AUTHZ REFRESH\n", arg1.user_id);
 
@@ -140,41 +142,43 @@ void display_message(int need_refreshed, char *new_acces_token, char *new_refres
 }
 
 int *
-validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rqstp)
+validate_delegated_action_1_svc(validate_action_params arg1,
+	struct svc_req *rqstp)
 {
 	static int  result = 0;
-	int crt_permission, is_find_id = 0, is_find_resource = 0, is_validate = 0, need_refreshed = 0;
+	int crt_permission, is_find_id = 0, is_find_resource = 0,
+		is_validate = 0, need_refreshed = 0;
 	token found_token;
 	char *new_acces_token, *new_refresh_token;
 
-	// for (int i = 0; i < no_users; i++) {
-	// 	printf("user_id : %s\n", db_users[i].user_id);
-	// }
-
-	//printf("user_id:%s\n", arg1.user_id);
+	// check for the given id in the users db
 	for (int i = 0; i < no_users; i++) {
-		//printf("id %d: %s\n", i, db_users[i].user_id);
 		if (strcmp(db_users[i].user_id, arg1.user_id) == 0) {
 			found_token = db_users[i].user_token;
-			//printf("id %s\n", db_users[i].user_id);
-			//printf("ttl %d\n", db_users[i].user_token.ttl);
 			crt_permission = found_token.crt_permissions;
+			// the token expired
 			if (found_token.ttl == 0) {
+				// it is automatically refreshed
 				if (found_token.is_automatic_refreshed == 1) {
-					new_acces_token = generate_access_token(found_token.refresh_token);
-					new_refresh_token = generate_access_token(new_acces_token);
+					new_acces_token =
+						generate_access_token(found_token.refresh_token);
+					new_refresh_token =
+						generate_access_token(new_acces_token);
 					
-					memcpy(db_users[i].user_token.token_value, new_acces_token, SIZE_USER_ID);
-					memcpy(db_users[i].user_token.refresh_token, new_refresh_token, SIZE_USER_ID);
+					memcpy(db_users[i].user_token.token_value, new_acces_token,
+						SIZE_USER_ID);
+					memcpy(db_users[i].user_token.refresh_token, new_refresh_token,
+						SIZE_USER_ID);
 
 					db_users[i].user_token.ttl = token_valability;
 					found_token.ttl = token_valability;
 					need_refreshed = 1;
+				// token deleted
 				} else {
 					memcpy(db_users[i].user_token.token_value, "", SIZE_USER_ID);
 				}
 			}
-			//printf("crt_perm %d\n", crt_permission);
+			// it is found and with permissions
 			if (crt_permission != -1) {
 				is_find_id = 1;
 				if (db_users[i].user_token.ttl > 0) {
@@ -185,54 +189,79 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 		}
 	}
 
+	// not found
 	if (is_find_id == 0) {
 		result = 1;
-		display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
+		display_message(need_refreshed, new_acces_token, new_refresh_token,
+			arg1);
 		printf("DENY (%s,%s,,0)\n", arg1.operation, arg1.resource);
 		return &result;
 	}
 
-	//printf("ttl found%d\n", found_token.ttl);
+	// it is expired
 	if (found_token.ttl == 0) {
 		if (found_token.is_automatic_refreshed == 0) {
 			result = 2;
-			display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
-			printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
+			display_message(need_refreshed, new_acces_token, new_refresh_token,
+				arg1);
+			printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource,
+			found_token.token_value, found_token.ttl);
 			return &result;
 		}
 	}
 
+	// found resource(file) in permission
 	for (int i = 0; i < no_resources; i++) {
 		if (strcmp(resources[i], arg1.resource) == 0) {
 			is_find_resource = 1;
 		}
 	}
+
+	// the time for token decreased
 	found_token.ttl--;
 
+	// no permission for resource
 	if (is_find_resource == 0) {
 		result = 3;
-		display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
-		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
+		display_message(need_refreshed, new_acces_token, new_refresh_token,
+			arg1);
+		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource,
+			found_token.token_value, found_token.ttl);
 		return &result;
 	}
 
+	// check if it is the proper permission
 	if (is_find_id == 1) {
-		//printf("crt:%d\n", crt_permission);
-		//printf("no_permission:%d\n", all_approvals[crt_permission].no_permissions);
 		for (int i = 0; i < all_approvals[crt_permission].no_permissions; i++) {
-			if (strcmp(all_approvals[crt_permission].list_permissions.list_permissions_val[i].file, arg1.resource) == 0) {
-				char *permission = (char *) calloc (SIZE_PERMISSION,  sizeof(char ));
-				memcpy(permission, all_approvals[crt_permission].list_permissions.list_permissions_val[i].permission, SIZE_PERMISSION);
+			if (strcmp(all_approvals[crt_permission].list_permissions
+				.list_permissions_val[i].file, arg1.resource) == 0) {
+				char *permission = (char *) calloc (SIZE_PERMISSION, 
+					sizeof(char ));
+				if (!permission) {
+					printf("Allocation permission failed\n");
+					exit(1);
+				}
+				memcpy(permission, all_approvals[crt_permission].list_permissions
+					.list_permissions_val[i].permission, SIZE_PERMISSION);
 				char *file = (char *) calloc (SIZE_RESOURCE_NAME, sizeof(char));
-				memcpy(file, all_approvals[crt_permission].list_permissions.list_permissions_val[i].file, SIZE_RESOURCE_NAME);
-				//printf("operation: %s, on: %s\n", arg1.operation, arg1.resource);
-				//printf("permission: %s, file: %s\n", permission, file);
+				if (!file) {
+					printf("Allocation file failed\n");
+					exit(1);
+				}
+				memcpy(file, all_approvals[crt_permission].list_permissions
+					.list_permissions_val[i].file, SIZE_RESOURCE_NAME);
+
 				if (strcmp(arg1.resource, file) == 0) {
-					if ((isLetterInWord(permission, 'R') == 0 && strcmp(arg1.operation, "READ") == 0) 
-						|| (isLetterInWord(permission, 'X') == 0 && strcmp(arg1.operation, "EXECUTE") == 0)
-						|| (isLetterInWord(permission, 'M') == 0 && strcmp(arg1.operation, "MODIFY") == 0)
-						|| (isLetterInWord(permission, 'D') == 0 && strcmp(arg1.operation, "DELETE") == 0)
-						|| (isLetterInWord(permission, 'I') == 0 && strcmp(arg1.operation, "INSERT") == 0)) {
+					if ((isLetterInWord(permission, 'R') == 0 
+						&& strcmp(arg1.operation, "READ") == 0) 
+						|| (isLetterInWord(permission, 'X') == 0 
+						&& strcmp(arg1.operation, "EXECUTE") == 0)
+						|| (isLetterInWord(permission, 'M') == 0 
+						&& strcmp(arg1.operation, "MODIFY") == 0)
+						|| (isLetterInWord(permission, 'D') == 0 
+						&& strcmp(arg1.operation, "DELETE") == 0)
+						|| (isLetterInWord(permission, 'I') == 0 
+						&& strcmp(arg1.operation, "INSERT") == 0)) {
 						is_validate = 1;
 					}
 				}
@@ -240,18 +269,19 @@ validate_delegated_action_1_svc(validate_action_params arg1,  struct svc_req *rq
 		}
 	}
 
+	// not the good permission
 	if (is_validate == 0) {
 		result = 4;
-		display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
-		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
+		display_message(need_refreshed, new_acces_token, new_refresh_token,
+			arg1);
+		printf("DENY (%s,%s,%s,%d)\n", arg1.operation, arg1.resource,
+			found_token.token_value, found_token.ttl);
 		return &result;
 	}
 	result = 0;
 	display_message(need_refreshed, new_acces_token, new_refresh_token, arg1);
-	printf("PERMIT (%s,%s,%s,%d)\n", arg1.operation, arg1.resource, found_token.token_value, found_token.ttl);
- 
-	//printf("result:%d\n", result);
-	//printf("token_valab:%d\n", token_valability);
+	printf("PERMIT (%s,%s,%s,%d)\n", arg1.operation, arg1.resource,
+		found_token.token_value, found_token.ttl);
 
 	return &result;
 }

@@ -108,6 +108,7 @@ tema1_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	return;
 }
 
+// read the file with clients
 void read_clients(char *filename_clients)
 {
 	FILE *file_clients = fopen(filename_clients, "r");
@@ -118,55 +119,53 @@ void read_clients(char *filename_clients)
 	}
 
 	fscanf(file_clients, "%d", &no_users);
-	//printf("no_users %d\n", no_users);
 	users = (char **) calloc(no_users, sizeof(char *));
 	if (!users) {
-		printf("Allocation failed\n");
+		printf("Allocation users failed\n");
 		exit(1);
 	}
 	db_users = (user_in_db *) calloc(no_users, sizeof(user_in_db));
-	//printf("problema\n");
-
 	if (!db_users) {
-		printf("Allocation failed\n");
+		printf("Allocation db_users failed\n");
 		exit(1);
 	}
 
+	// initialize the use db with ids and the rest with default values
 	for (int i = 0; i < no_users; i++) {
 		users[i] = (char *) calloc(SIZE_USER_ID, sizeof(char));
 
 		if (!users[i]) {
-			printf("Allocations failed\n");
+			printf("Allocations users[i] failed\n");
 			exit(1);
 		}
 
 		fscanf(file_clients, "%s", users[i]);
 		db_users[i].user_id = (char *) calloc(SIZE_USER_ID, sizeof(char));
 		if (!db_users[i].user_id) {
-			printf("Allocations failed\n");
+			printf("Allocations db_users[i].user_id failed\n");
 			exit(1);
 		}
 		
 		memcpy(db_users[i].user_id, users[i], SIZE_USER_ID);
 
-		db_users[i].user_token.token_value = (char *) calloc(SIZE_USER_ID, sizeof(char));
-		db_users[i].user_token.refresh_token = (char *) calloc(SIZE_USER_ID, sizeof(char));
+		db_users[i].user_token.token_value = (char *) calloc(SIZE_USER_ID,
+			sizeof(char));
+		db_users[i].user_token.refresh_token = (char *) calloc(SIZE_USER_ID,
+			sizeof(char));
 		if (!db_users[i].user_token.token_value) {
-			printf("Allocations failed\n");
+			printf("Allocations db_users[i].user_token.refresh_token failed\n");
 			exit(1);
 		}
 		db_users[i].user_token.crt_permissions = -1;
 		db_users[i].user_token.is_automatic_refreshed = 0;
 		db_users[i].user_token.is_signed = 0;
-		//db_users[i].user_token.token_value = " ";
 		db_users[i].user_token.ttl = 0;
 
-		//printf("%d\n", i);
-		//printf("user_id : %s\n", db_users[i].user_id);
 	}
 	fclose(file_clients);
 }
 
+// read file with resources
 void read_resources(char *filename_resouces)
 {
 	FILE *file_resources = fopen(filename_resouces, "r");
@@ -177,11 +176,11 @@ void read_resources(char *filename_resouces)
 	}
 
 	fscanf(file_resources, "%d", &no_resources);
-	//printf("no_resources %d\n", no_resources);
-	resources = (char **) calloc(no_resources, sizeof(char *));
 
+	// put the values in array of resources
+	resources = (char **) calloc(no_resources, sizeof(char *));
 	if (!resources) {
-		printf("Allocation failed\n");
+		printf("Allocation resources failed\n");
 		exit(1);
 	}
 
@@ -189,16 +188,16 @@ void read_resources(char *filename_resouces)
 
 		resources[i] = (char *) calloc(SIZE_RESOURCE_NAME, sizeof(char));
 		if (!resources[i]) {
-			printf("Allocations failed\n");
+			printf("Allocations resources[i] failed\n");
 			exit(1);
 		}
 
 		fscanf(file_resources, "%s", resources[i]);
-		//printf("%s\n", resources[i]);
 	}
 	fclose(file_resources);
 }
 
+// read file with approvals
 void read_approvals(char *filename_approvals) {
     FILE *file_approvals = fopen(filename_approvals, "r");
 
@@ -209,49 +208,71 @@ void read_approvals(char *filename_approvals) {
 
     file_permission perm;
     size_t no_it = 0;
-	all_approvals = (approval *)calloc((no_approvals + 1), sizeof(approval));
+	all_approvals = (approval *)calloc((no_approvals + 1),
+		sizeof(approval));
+	if (!all_approvals) {
+		printf("Allocation all_approvals failed\n");
+		exit(1);
+	}
 
-    // Read each line
+    // read each line
     while (fgets(buf, LINESIZE, file_approvals)) {
-        // Resize the all_approvals array
-        all_approvals = (approval *)realloc(all_approvals, (no_approvals + 1) * sizeof(approval));
+        // resize the all_approvals array
+        all_approvals = (approval *)realloc(all_approvals,
+			(no_approvals + 1) * sizeof(approval));
 
-        // Tokenize the line
+        // tokenize the line
         perm.file = strtok(buf, ",");
         perm.permission = strtok(NULL, ",");
 
         no_it = 0;
 
-        // Allocate memory for list_permissions
-        all_approvals[no_approvals].list_permissions.list_permissions_val = (file_permission *)calloc((no_it + 1), sizeof(file_permission));
-
-        // Parse each file with permissions
+        // allocate memory for list_permissions
+        all_approvals[no_approvals].list_permissions.list_permissions_val =
+			(file_permission *)calloc((no_it + 1), sizeof(file_permission));
+		if (!all_approvals[no_approvals].list_permissions.list_permissions_val) {
+			printf("Allocation all_approvals[no_approvals].list_permissions.list_permissions_val failed\n");
+			exit(1);
+		}
+        // parse each file with permissions
         while (perm.file != NULL) {
-            // Resize the list_permissions array
-            all_approvals[no_approvals].list_permissions.list_permissions_val = (file_permission *)realloc(all_approvals[no_approvals].list_permissions.list_permissions_val, (no_it + 1) * sizeof(file_permission));
+            // resize the list_permissions array
+            all_approvals[no_approvals].list_permissions.list_permissions_val =
+				(file_permission *)realloc(all_approvals[no_approvals].list_permissions
+				.list_permissions_val, (no_it + 1) * sizeof(file_permission));
 
-            // Allocate memory for file and permission
-            all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].file = (char *)calloc(SIZE_RESOURCE_NAME, sizeof(char));
-            all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].permission = (char *)calloc(SIZE_PERMISSION, sizeof(char));
+            // allocate memory for file and permission
+            all_approvals[no_approvals].list_permissions.list_permissions_val[no_it]
+				.file = (char *)calloc(SIZE_RESOURCE_NAME, sizeof(char));
+			if (!all_approvals[no_approvals].list_permissions
+				.list_permissions_val[no_it].file) {
+				printf("Allocation all_approvals.file failed\n");
+				exit(1);
+			}
+            all_approvals[no_approvals].list_permissions.list_permissions_val[no_it]
+				.permission = (char *)calloc(SIZE_PERMISSION, sizeof(char));
+			if (!all_approvals[no_approvals].list_permissions
+				.list_permissions_val[no_it].permission) {
+				printf("Allocation all_approvals.permission failed\n");
+				exit(1);
+			}
 
-            // Copy values
-            memcpy(all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].file, perm.file, SIZE_RESOURCE_NAME);
-            memcpy(all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].permission, perm.permission, SIZE_PERMISSION);
-
-            //printf("%s %s\n", all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].file, all_approvals[no_approvals].list_permissions.list_permissions_val[no_it].permission);
+            memcpy(all_approvals[no_approvals].list_permissions
+				.list_permissions_val[no_it].file, perm.file, SIZE_RESOURCE_NAME);
+            memcpy(all_approvals[no_approvals].list_permissions
+				.list_permissions_val[no_it].permission, perm.permission, SIZE_PERMISSION);
 
             no_it++;
 
-            // Tokenize the next pair
+            // tokenize the next pair
             perm.file = strtok(NULL, ",");
             perm.permission = strtok(NULL, ",");
         }
 
-        // Update the length of list_permissions
+        // update the length of list_permissions
         all_approvals[no_approvals].no_permissions = no_it;
-		//printf("%d\n", all_approvals[no_approvals].list_permissions.list_permissions_len);
 
-        // Increment the number of approvals
+        // increment the number of approvals
         no_approvals++;
     }
 

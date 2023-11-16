@@ -150,6 +150,18 @@ xdr_request_access_token (XDR *xdrs, request_access_token *objp)
 }
 
 bool_t
+xdr_approve_request_params (XDR *xdrs, approve_request_params *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->token_value, ~0))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
 xdr_validate_action_params (XDR *xdrs, validate_action_params *objp)
 {
 	register int32_t *buf;
@@ -159,18 +171,6 @@ xdr_validate_action_params (XDR *xdrs, validate_action_params *objp)
 	 if (!xdr_string (xdrs, &objp->resource, ~0))
 		 return FALSE;
 	 if (!xdr_string (xdrs, &objp->user_id, ~0))
-		 return FALSE;
-	return TRUE;
-}
-
-bool_t
-xdr_approve_request_params (XDR *xdrs, approve_request_params *objp)
-{
-	register int32_t *buf;
-
-	 if (!xdr_string (xdrs, &objp->token_value, ~0))
-		 return FALSE;
-	 if (!xdr_int (xdrs, &objp->is_automatic_refreshed))
 		 return FALSE;
 	return TRUE;
 }

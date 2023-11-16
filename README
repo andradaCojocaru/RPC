@@ -1,0 +1,34 @@
+# 342C1 Andrada-Ioana Cojocaru
+
+Server Implementation
+All the necessary information (clients, resources, permissions) is read from all
+the files given in the command line - all operations are in tema1_svc.c.
+tema1_server.c
+* request_authorization -> the user ID is received, and if a user with this ID is
+found, a request token is generated; otherwise, USER_NOT_FOUND will be displayed.
+* approve_request_token -> associates the user with the ID of the current
+permission found in all approvals.If the permission "*" is encountered, then the
+* request_access_token -> If the token is signed, then the generation of an access
+token can begin. If it has automatic refresh, a refresh token is also generated,
+and these details are displayed on the screen.user will not sign the token.
+These details are saved in the corresponding tokens for each user in the user_db.
+* validate_delegated_action -> check for the given id in the users db. If the
+token expired and it is automatically refresh than we must make the same thing
+to generate new tokens, if not, the token must be erased. If the token is not
+found, expired, not the good one for the file or the type permission we must
+display some errors, if not the request is accepted
+
+
+Client Implementation
+Lines are read from the command line one by one, and depending on the type of
+operation, it is checked at the request whether it is a refresh or not. The
+operation is then carried out by calling the functions from the server:
+REQUEST_AUTHORIZATION, APPROVE_REQUEST_TOKEN, REQUEST_ACCESS_TOKEN. Relevant
+messages are displayed based on the received statuses.
+
+
+Testing
+for testing run:
+make -f Makefile.tema1
+./check.sh all
+I put '\n' in all server.out, client.out files
